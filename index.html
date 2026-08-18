@@ -18,6 +18,15 @@
   <link rel="icon" type="image/png" href="shared/nepsis-mark.png">
   <script>window.NEPSIS_APP = { id: 'holy-land', base: '' };</script>
   <script defer src="shared/nepsis-shell.js"></script>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-6BB7ENGW9V"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'G-6BB7ENGW9V');
+  </script>
 </head>
 
 <body>
@@ -34,8 +43,8 @@
 
   <!-- ------------------------------------------------------------ top bar -->
   <header id="topbar">
-    <button id="btnMenu" class="icon-btn" aria-label="Toggle the controls panel"
-            aria-expanded="true" aria-controls="sidebar" title="Toggle the controls panel  ( [ )">
+    <button id="btnMenu" class="icon-btn" aria-label="Toggle the controls panel" aria-expanded="true"
+      aria-controls="sidebar" title="Toggle the controls panel  ( [ )">
       <svg viewBox="0 0 24 24" width="20" height="20">
         <path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
       </svg>
@@ -83,11 +92,11 @@
 
     <div class="side-top">
       <span class="side-title">Controls</span>
-      <button id="btnSideCollapse" class="mini-btn" type="button"
-              title="Hide the controls panel  ( [ )" aria-label="Hide the controls panel">
+      <button id="btnSideCollapse" class="mini-btn" type="button" title="Hide the controls panel  ( [ )"
+        aria-label="Hide the controls panel">
         <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-          <path d="M14 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M14 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
       </button>
     </div>
@@ -95,8 +104,8 @@
     <section class="sec" data-sec="era">
       <button class="sec-head" type="button" aria-expanded="true" aria-controls="sec-era">
         <svg class="chev" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4"
-                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
         <span class="sec-title">Era</span>
         <span id="eraBadge" class="badge">All</span>
@@ -104,8 +113,7 @@
       <div class="sec-body" id="sec-era">
         <div id="eraLabel" class="tl-label">All eras</div>
         <div id="eraRange" class="tl-range">Genesis to Revelation</div>
-        <input type="range" id="eraSlider" min="0" max="9" step="1" value="9"
-               aria-label="Biblical era">
+        <input type="range" id="eraSlider" min="0" max="9" step="1" value="9" aria-label="Biblical era">
         <div class="tl-ends"><span>Patriarchs</span><span>All</span></div>
         <p id="eraBlurb" class="tl-blurb">Every site in the dataset, whatever its period.</p>
       </div>
@@ -114,8 +122,8 @@
     <section class="sec" data-sec="views">
       <button class="sec-head" type="button" aria-expanded="true" aria-controls="sec-views">
         <svg class="chev" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4"
-                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
         <span class="sec-title">Jump to</span>
       </button>
@@ -127,8 +135,8 @@
     <section class="sec" data-sec="basemap">
       <button class="sec-head" type="button" aria-expanded="true" aria-controls="sec-basemap">
         <svg class="chev" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4"
-                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
         <span class="sec-title">Basemap</span>
       </button>
@@ -142,8 +150,8 @@
     <section class="sec" data-sec="exag">
       <button class="sec-head" type="button" aria-expanded="true" aria-controls="sec-exag">
         <svg class="chev" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4"
-                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
         <span class="sec-title">Terrain exaggeration</span>
         <span id="exagVal" class="badge">2.0×</span>
@@ -158,8 +166,8 @@
     <section class="sec" data-sec="sites">
       <button class="sec-head" type="button" aria-expanded="true" aria-controls="sec-sites">
         <svg class="chev" viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
-          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4"
-                stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"
+            stroke-linejoin="round" />
         </svg>
         <span class="sec-title">Show sites</span>
         <span id="count" class="badge"></span>
@@ -172,11 +180,11 @@
   </aside>
 
   <!-- Reopens the panel once it has been hidden. -->
-  <button id="sideHandle" class="side-handle" type="button"
-          title="Show the controls panel  ( [ )" aria-label="Show the controls panel">
+  <button id="sideHandle" class="side-handle" type="button" title="Show the controls panel  ( [ )"
+    aria-label="Show the controls panel">
     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-      <path d="M10 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+        stroke-linejoin="round" />
     </svg>
     <span>Controls</span>
   </button>
@@ -227,7 +235,7 @@
 
       <h3>Eras</h3>
       <p>The <b>Era</b> card at the top of the controls panel filters both the site markers
-       and the regional labels.
+        and the regional labels.
         Set it to <b>Divided Kingdom</b> and you get Israel and Judah with Samaria and Lachish;
         slide to <b>Early Church</b> and the map opens out to Asia, Macedonia and Rome.</p>
 
