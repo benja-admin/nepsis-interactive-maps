@@ -1,0 +1,51 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+
+      # Custom domain. GitHub Pages needs a CNAME file inside the uploaded
+      # artifact when you deploy via Actions (unlike branch-based deploys,
+      # where the Settings UI commits one for you).
+      #
+      # Set it EITHER by committing a CNAME file at the repo root, OR by
+      # adding a repository variable named CUSTOM_DOMAIN
+      # (Settings -> Secrets and variables -> Actions -> Variables).
+      # The variable wins if both are present.
+      - name: Write CNAME for the custom domain
+        if: vars.CUSTOM_DOMAIN != ''
+        run: echo "${{ vars.CUSTOM_DOMAIN }}" > CNAME
+
+      - name: Report the domain being published
+        run: |
+          if [ -f CNAME ]; then
+            echo "Publishing to custom domain: $(cat CNAME)"
+          else
+            echo "No CNAME file - publishing to the default github.io URL."
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: '.'
+      - id: deployment
+        uses: actions/deploy-pages@v4

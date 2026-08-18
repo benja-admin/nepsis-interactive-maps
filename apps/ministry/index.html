@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#e9e6e0">
+<title>The Ministry of Jesus Christ — Interactive 3D Map of the Holy Land</title>
+<meta name="description" content="An interactive three-dimensional relief map of the Holy Land tracing the travels of Jesus Christ through each year of His public ministry, c. AD 27-30.">
+<style>
+:root{
+  --paper:#fafafa; --ink:#000; --ink2:#1a1a1a; --red:#aa0000;
+  --sb:env(safe-area-inset-bottom,0px); --st:env(safe-area-inset-top,0px);
+  --sl:env(safe-area-inset-left,0px);   --sr:env(safe-area-inset-right,0px);
+  --line:rgba(26,26,26,.14); --line2:rgba(26,26,26,.28);
+  --mute:rgba(26,26,26,.58);
+  --y1:#aa0000; --y2:#1a1a1a; --y3:#fafafa;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:#e9e6e0}
+@supports (height:100dvh){html,body{height:100dvh}}
+body{font:400 14px/1.5 "Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--ink2);
+     -webkit-font-smoothing:antialiased}
+canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
+canvas.drag{cursor:grabbing}
+
+/* ---------- masthead : always visible ---------- */
+#top{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:flex-start;
+     gap:14px;padding:calc(14px + var(--st)) calc(16px + var(--sr)) 0 calc(16px + var(--sl));pointer-events:none}
+#brand{pointer-events:auto;display:flex;align-items:center;gap:13px;background:var(--paper);
+       border:1px solid var(--line);padding:10px 16px 10px 13px;box-shadow:0 2px 14px rgba(0,0,0,.10)}
+#brand img{width:74px;height:auto;display:block}
+#brand .bar{width:1px;align-self:stretch;background:var(--line2)}
+#brand h1{margin:0;font-size:15px;letter-spacing:.045em;text-transform:uppercase;font-weight:700;color:var(--ink)}
+#brand h1 em{font-style:normal;color:var(--red)}
+#brand p{margin:3px 0 0;font-size:11px;letter-spacing:.10em;text-transform:uppercase;color:var(--mute)}
+#tools{margin-left:auto;display:flex;gap:6px;pointer-events:auto}
+.tb{font:600 10.5px/1 "Helvetica Neue",Helvetica,Arial,sans-serif;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink2);background:var(--paper);border:1px solid var(--line);
+    padding:12px 13px;min-height:42px;cursor:pointer;text-decoration:none;display:inline-flex;
+    align-items:center;transition:.16s}
+.tb:hover{background:var(--ink2);color:var(--paper);border-color:var(--ink2)}
+.tb.hot{background:var(--red);border-color:var(--red);color:#fff}
+
+/* ---------- panels ---------- */
+.panel{position:fixed;z-index:30;background:var(--paper);border:1px solid var(--line);
+       box-shadow:0 2px 20px rgba(0,0,0,.11);display:flex;flex-direction:column;
+       transition:opacity .22s,transform .22s}
+#left{left:16px;top:104px;bottom:16px;width:322px;overflow:hidden}
+#right{right:16px;top:104px;width:314px;max-height:calc(100% - 176px);overflow:hidden}
+.panel.off{opacity:0;transform:translateY(-8px);pointer-events:none}
+#ui.hide .panel,#ui.hide #legend{opacity:0;transform:translateY(-8px);pointer-events:none}
+
+/* year tabs */
+#grip{display:none;width:100%;align-items:center;justify-content:center;gap:9px;
+      background:none;border:0;border-bottom:1px solid var(--line);padding:9px 12px 8px;
+      min-height:40px;cursor:pointer;flex:0 0 auto}
+#grip .gb{width:38px;height:4px;border-radius:2px;background:rgba(26,26,26,.24)}
+#grip .gt{font:700 9.5px/1 inherit;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+#left.min #grip .gt{color:var(--red)}
+#tabs{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+.tab{font:700 10px/1 inherit;letter-spacing:.10em;text-transform:uppercase;padding:13px 4px;min-height:46px;
+     background:none;border:0;border-right:1px solid var(--line);color:var(--mute);cursor:pointer;transition:.15s}
+.tab:last-child{border-right:0}
+.tab:hover{color:var(--ink)}
+.tab.on{background:var(--ink2);color:var(--paper)}
+.tab.on[data-y="1"]{background:var(--red)}
+
+#yhead{padding:16px 18px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
+#yhead .kick{font:700 9.5px/1 inherit;letter-spacing:.18em;text-transform:uppercase;color:var(--red)}
+#yhead h2{margin:8px 0 0;font:400 21px/1.15 Georgia,"Times New Roman",serif;color:var(--ink)}
+#yhead p{margin:7px 0 0;font-size:12.5px;line-height:1.55;color:var(--mute)}
+
+#jlist{overflow-y:auto;flex:1;min-height:0;scrollbar-width:thin}
+#jlist::-webkit-scrollbar{width:6px}
+#jlist::-webkit-scrollbar-thumb{background:var(--line2)}
+.j{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);
+   padding:14px 18px 14px 16px;min-height:60px;cursor:pointer;position:relative;transition:background .15s}
+.j:hover{background:rgba(0,0,0,.035)}
+.j.on{background:rgba(170,0,0,.055)}
+.j:before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:transparent}
+.j.on:before{background:var(--red)}
+.j .n{font:700 9.5px/1 inherit;letter-spacing:.14em;color:rgba(26,26,26,.42)}
+.j .t{margin:6px 0 0;font-size:13.5px;line-height:1.35;color:var(--ink);font-weight:600}
+.j .r{margin:5px 0 0;font:italic 12px/1.4 Georgia,serif;color:var(--red)}
+.j .p{margin:6px 0 0;font-size:11.5px;line-height:1.45;color:var(--mute)}
+
+/* right / site panel */
+#right .close{position:absolute;top:6px;right:6px;background:none;border:0;font-size:24px;line-height:1;
+              color:var(--mute);cursor:pointer;min-width:44px;min-height:44px;z-index:2}
+#right .close:hover{color:var(--red)}
+#rbody{padding:20px 18px 18px;overflow-y:auto;min-height:0}
+#rbody .kick{font:700 9.5px/1 inherit;letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+#rbody h3{margin:9px 0 0;font:400 24px/1.1 Georgia,"Times New Roman",serif;color:var(--ink)}
+#rbody .alt{margin:5px 0 0;font:italic 12.5px/1.4 Georgia,serif;color:var(--mute)}
+#rbody .meta{margin:13px 0 0;display:flex;gap:16px;padding:10px 0;border-top:1px solid var(--line);
+             border-bottom:1px solid var(--line);font-size:11px;letter-spacing:.05em;color:var(--mute)}
+#rbody .meta b{display:block;color:var(--ink2);font-size:12.5px;letter-spacing:0;margin-top:2px}
+#rbody .d{margin:13px 0 0;font-size:13px;line-height:1.62}
+#rbody .rl{margin:14px 0 0;padding-top:12px;border-top:1px solid var(--line)}
+#rbody .rl span{font:700 9.5px/1 inherit;letter-spacing:.16em;text-transform:uppercase;color:var(--mute)}
+#rbody .stops{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.jstop{font:600 11.5px/1 inherit;letter-spacing:.02em;background:none;border:1px solid var(--line2);
+       color:var(--ink2);padding:11px 11px;min-height:40px;cursor:pointer;transition:.15s}
+.jstop:hover{background:var(--red);border-color:var(--red);color:#fff}
+#rbody .rl u{display:block;margin-top:7px;font:italic 13px/1.7 Georgia,serif;color:var(--ink2);text-decoration:none}
+
+/* legend + relief */
+#legend{position:fixed;left:16px;bottom:16px;z-index:29;display:none;gap:0;
+        background:var(--paper);border:1px solid var(--line);box-shadow:0 2px 14px rgba(0,0,0,.10);
+        transition:opacity .22s}
+#legend.show{display:block}
+#legend .row{display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:11px;letter-spacing:.04em}
+#legend .row+.row{border-top:1px solid var(--line)}
+#legend i{width:22px;height:3px;display:block;flex:0 0 auto;border:1px solid rgba(26,26,26,.3)}
+
+#relief{position:fixed;right:16px;bottom:16px;z-index:29;background:var(--paper);border:1px solid var(--line);
+        box-shadow:0 2px 14px rgba(0,0,0,.10);padding:11px 14px 9px;display:flex;align-items:center;gap:11px}
+#relief label{font:700 9.5px/1 inherit;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+#relief input{width:104px;accent-color:var(--red)}
+#ui.hide #relief{opacity:0;pointer-events:none}
+
+/* map labels */
+#labels{position:fixed;inset:0;z-index:20;pointer-events:none;overflow:hidden}
+.lb{position:absolute;transform:translate(-50%,0);white-space:nowrap;font-size:11.5px;font-weight:600;
+    letter-spacing:.02em;color:var(--ink);text-shadow:0 0 3px #fafafa,0 0 3px #fafafa,0 0 6px #fafafa,0 1px 2px #fafafa;
+    pointer-events:auto;cursor:pointer;padding:2px 3px}
+.lb.dim{color:rgba(26,26,26,.55);font-weight:500;font-size:10.5px}
+.lb.sel{color:var(--red);font-weight:700}
+.lb.reg{font:italic 400 13px/1 Georgia,serif;letter-spacing:.16em;text-transform:uppercase;
+        color:rgba(26,26,26,.42);text-shadow:0 0 4px #fafafa,0 0 8px #fafafa;pointer-events:none}
+.lb.wat{font:italic 400 13px/1 Georgia,serif;letter-spacing:.06em;color:#2b4f63;
+        text-shadow:0 0 4px rgba(250,250,250,.9),0 0 8px rgba(250,250,250,.7);pointer-events:none}
+
+/* app switcher */
+#appwrap{position:relative}
+#appmenu{position:absolute;top:calc(100% + 8px);right:0;width:258px;z-index:60;
+  background:var(--paper);border:1px solid var(--line);box-shadow:0 6px 26px rgba(0,0,0,.18);
+  padding:5px;opacity:0;transform:translateY(-6px);pointer-events:none;
+  transition:opacity .18s ease,transform .18s ease}
+#appwrap.open #appmenu{opacity:1;transform:none;pointer-events:auto}
+#appmenu .ah{padding:8px 9px 7px;font:700 9.5px/1 inherit;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--mute)}
+.ai{display:block;padding:10px 9px;text-decoration:none;color:var(--ink2);position:relative;
+  transition:background .14s}
+.ai:hover,.ai:focus-visible{background:rgba(0,0,0,.05);outline:none}
+.ai:focus-visible{box-shadow:inset 0 0 0 2px var(--red)}
+.ai b{display:block;font-size:13px;font-weight:600;line-height:1.25}
+.ai span{display:block;font-size:11px;color:var(--mute);margin-top:2px;line-height:1.35}
+.ai.current{background:rgba(170,0,0,.06)}
+.ai.current b{color:var(--red)}
+.ai .here{position:absolute;top:10px;right:9px;font:700 9px/1 inherit;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--red);border:1px solid rgba(170,0,0,.3);
+  background:rgba(170,0,0,.08);padding:2px 6px}
+.ai.site{margin-top:4px;border-top:1px solid var(--line)}
+.ai.site b{font:italic 400 12.5px/1.2 Georgia,serif;color:var(--mute)}
+@media (max-width:900px){#appmenu{width:min(268px,calc(100vw - 28px))}}
+#hint{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:28;
+      font:600 10px/1 inherit;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,26,26,.5);
+      background:rgba(250,250,250,.86);border:1px solid var(--line);padding:9px 14px;pointer-events:none;
+      transition:opacity .5s}
+#boot{position:fixed;inset:0;z-index:90;background:var(--paper);display:flex;flex-direction:column;
+      align-items:center;justify-content:center;gap:18px;transition:opacity .5s}
+#boot img{width:150px}
+#boot p{font:700 10px/1 inherit;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin:0}
+#boot .b{width:190px;height:2px;background:var(--line);overflow:hidden}
+#boot .b i{display:block;height:100%;width:30%;background:var(--red);animation:sl 1.1s infinite ease-in-out}
+@keyframes sl{0%{transform:translateX(-100%)}100%{transform:translateX(330%)}}
+#boot.gone{opacity:0;pointer-events:none}
+
+#ui.embed #top{padding:12px}
+@media (max-width:900px){
+  /* Journey list becomes a bottom sheet you can collapse to just the tabs. */
+  #left{left:0;right:0;width:auto;top:auto;bottom:0;height:auto;max-height:52dvh;
+        border-left:0;border-right:0;border-bottom:0;
+        padding-bottom:var(--sb);border-top:2px solid var(--red);
+        transition:transform .28s cubic-bezier(.22,.61,.36,1)}
+  #left.min{transform:translateY(calc(100% - 46px - var(--sb) - 2px))}
+  #grip{display:flex}
+  #yhead{display:none}
+  /* Site panel slides up over it. */
+  #right{left:0;right:0;width:auto;top:auto;bottom:0;max-height:78dvh;
+         border-left:0;border-right:0;border-bottom:0;border-top:2px solid var(--red);
+         padding-bottom:var(--sb);z-index:31;
+         transform:translateY(0);transition:transform .3s cubic-bezier(.22,.61,.36,1),opacity .2s}
+  #right.off{transform:translateY(103%);opacity:1}
+  #rbody{padding:22px 18px 18px}
+  #brand p{display:none}#brand img{width:54px}#brand h1{font-size:12px}
+  #brand{padding:9px 12px 9px 10px}
+  #legend,#relief,#hint{display:none!important}
+  #top{padding:calc(8px + var(--st)) calc(8px + var(--sr)) 0 calc(8px + var(--sl))}
+  .lb{font-size:10.5px}
+  .lb.dim{display:none}
+}
+@media (min-width:901px){#grip{display:none}}
+</style>
+
+<!-- Nepsis Ministries shared shell. These come AFTER the app's own
+     styles above, so the theme layer wins on equal specificity. -->
+<link rel="stylesheet" href="../../shared/nepsis.css">
+<link rel="stylesheet" href="../../shared/theme-ministry.css">
+<link rel="icon" type="image/png" href="../../shared/nepsis-mark.png">
+<script>window.NEPSIS_APP = { id: 'ministry', base: '../../' };</script>
+<script defer src="../../shared/nepsis-shell.js"></script>
+</head>
+<body>
+<div id="ui">
+  <canvas id="gl"></canvas>
+  <div id="labels"></div>
+
+  <header id="top">
+    <div id="tools">
+      <button class="tb" id="bReset">Reset view</button>
+      <button class="tb" id="bUI">Hide panels</button>
+    </div>
+  </header>
+
+  <aside class="panel" id="left">
+    <button id="grip" aria-expanded="true" aria-controls="jlist">
+      <span class="gb"></span><span class="gt">Journeys</span>
+    </button>
+    <div id="tabs">
+      <button class="tab" data-y="0">All</button>
+      <button class="tab on" data-y="1">Year I</button>
+      <button class="tab" data-y="2">Year II</button>
+      <button class="tab" data-y="3">Year III</button>
+    </div>
+    <div id="yhead"></div>
+    <div id="jlist"></div>
+  </aside>
+
+  <aside class="panel off" id="right">
+    <button class="close" id="rClose">&times;</button>
+    <div id="rbody"></div>
+  </aside>
+
+  <div id="legend">
+    <div class="row"><i style="background:#aa0000"></i>Year I &middot; Inauguration</div>
+    <div class="row"><i style="background:#1a1a1a"></i>Year II &middot; Popularity</div>
+    <div class="row"><i style="background:#fafafa"></i>Year III &middot; Opposition</div>
+  </div>
+
+  <div id="relief"><label for="rv">Relief</label><input id="rv" type="range" min="2" max="11" step="0.5" value="6.5"></div>
+  <div id="hint">Drag to orbit &middot; Scroll to zoom &middot; Right-drag to pan &middot; Click a site</div>
+</div>
+
+<div id="boot"><img src="../../shared/nepsis-logo.png" alt="Nepsis Ministries"><p>Building the land</p><div class="b"><i></i></div></div>
+
+<script>
+"use strict";
+/*=================================================================================
+  NEPSIS MINISTRIES — Holy Land 3D · The Ministry of Jesus Christ
+  Self-contained WebGL 1.0. No external dependencies.
+  Terrain synthesised from surveyed control profiles of the Levant:
+  coastline, Central Hill crest, Jordan Rift axis + floor, Transjordan plateau,
+  plus discrete massifs (Hermon, Meron, Carmel, Tabor, Gilboa) and lake basins.
+=================================================================================*/
+
+//===DATA-START===
+/* Sites: la=latitude, lo=longitude, k=kind, alt=other names, d=description, r=scripture */
+var SITES={
+nazareth:{n:"Nazareth",e:350,la:32.702,lo:35.298,k:"town",alt:"Natzrat — 'the branch town'",
+ d:"An obscure hill village of perhaps 400 souls, hidden in a bowl of the Lower Galilee ridge above the Jezreel Valley. Jesus grew up here and returned twice to teach in its synagogue; both times He was rejected.",
+ r:["Matthew 2:23","Luke 2:39-52","Luke 4:16-30","Mark 6:1-6"]},
+cana:{n:"Cana of Galilee",e:275,la:32.746,lo:35.343,k:"town",alt:"Kefar Kanna / Khirbet Qana",
+ d:"A small Galilean village nine miles north of Nazareth. Here Jesus turned water into wine at a wedding feast — the first of His signs — and later healed a royal official's son at Capernaum from a distance.",
+ r:["John 2:1-11","John 4:46-54","John 21:2"]},
+sepphoris:{n:"Sepphoris",e:280,la:32.752,lo:35.279,k:"city",alt:"Zippori — 'the ornament of all Galilee'",
+ d:"Herod Antipas' first Galilean capital, four miles from Nazareth and rebuilt in stone during Jesus' boyhood. Never named in the Gospels, though its building works shaped the world of a Nazarene tekton.",
+ r:[]},
+capernaum:{n:"Capernaum",e:-210,la:32.881,lo:35.575,k:"city",alt:"Kefar Nahum — 'village of Nahum'",
+ d:"A fishing and customs town on the north-west shore of the lake, on the Via Maris. Jesus made it His base after leaving Nazareth; more of His recorded miracles happened here than anywhere else.",
+ r:["Matthew 4:13-17","Mark 1:21-34","Mark 2:1-12","Matthew 11:23","John 6:24-59"]},
+bethsaida:{n:"Bethsaida",e:-190,la:32.911,lo:35.630,k:"town",alt:"Bethsaida Julias — 'house of fishing'",
+ d:"A fishing village at the inflow of the Jordan, raised to a city by Philip the Tetrarch. Home town of Philip, Andrew and Peter; near here the five thousand were fed, and a blind man healed in two stages.",
+ r:["John 1:44","Luke 9:10-17","Mark 8:22-26","Matthew 11:21"]},
+chorazin:{n:"Chorazin",e:-25,la:32.911,lo:35.564,k:"town",alt:"Korazim",
+ d:"A basalt-built town on the ridge two miles above Capernaum. It saw great works and did not repent, and so was named in the woes alongside Bethsaida.",
+ r:["Matthew 11:21-22","Luke 10:13-15"]},
+magdala:{n:"Magdala",e:-200,la:32.825,lo:35.516,k:"town",alt:"Migdal / Dalmanutha / Taricheae",
+ d:"A prosperous fish-salting harbour on the western shore, home of Mary Magdalene. Jesus landed at its plain after the feeding of the four thousand, where the Pharisees demanded a sign from heaven.",
+ r:["Matthew 15:39","Mark 8:10","Luke 8:2","Mark 16:9"]},
+tiberias:{n:"Tiberias",e:-205,la:32.795,lo:35.530,k:"city",alt:"Capital of Herod Antipas",
+ d:"Antipas' new lakeside capital, built over a graveyard and shunned by observant Jews. Jesus is never recorded entering it, though boats from Tiberias crossed to find Him after the feeding of the five thousand.",
+ r:["John 6:1","John 6:23","John 21:1"]},
+gennesaret:{n:"Plain of Gennesaret",e:-200,la:32.848,lo:35.531,k:"site",alt:"Ginnosar",
+ d:"A crescent of unusually fertile land on the north-west shore. The boat landed here after Jesus walked on the sea, and the sick of the whole district were carried to Him on their mats.",
+ r:["Matthew 14:34-36","Mark 6:53-56"]},
+beatitudes:{n:"Mount of Beatitudes",e:25,la:32.881,lo:35.554,k:"mount",alt:"Mount Eremos / Horns of Hattin (trad.)",
+ d:"The hillside above Capernaum where the Sermon on the Mount was given. The natural amphitheatre carries a speaking voice remarkably well down toward the shore.",
+ r:["Matthew 5:1-2","Matthew 5-7","Luke 6:17-49"]},
+kursi:{n:"Gergesa (Kursi)",e:-200,la:32.826,lo:35.650,k:"site",alt:"Country of the Gadarenes / Gerasenes",
+ d:"The one place on the eastern shore where a steep slope runs straight into the lake. Here Jesus freed a man of a legion of demons and the herd of swine rushed down and drowned.",
+ r:["Mark 5:1-20","Matthew 8:28-34","Luke 8:26-39"]},
+gadara:{n:"Gadara",e:378,la:32.653,lo:35.685,k:"city",alt:"Umm Qais — one of the Decapolis",
+ d:"A Greek city of the Decapolis on the heights south-east of the lake, whose territory reached the shore. Its name is attached to the deliverance of the demoniac in Matthew's account.",
+ r:["Matthew 8:28","Mark 5:20"]},
+hippos:{n:"Hippos",e:350,la:32.779,lo:35.660,k:"city",alt:"Susita — one of the Decapolis",
+ d:"A pagan city set on a flat-topped hill 1,100 feet above the eastern shore, visible from Capernaum — very likely the city set on a hill that cannot be hidden.",
+ r:["Matthew 5:14"]},
+tabor:{n:"Mount Tabor",e:588,la:32.687,lo:35.390,k:"mount",alt:"Traditional Mount of Transfiguration",
+ d:"A dome of a hill rising 1,300 feet alone out of the Jezreel Valley. Byzantine tradition placed the Transfiguration here, though the Gospel sequence points north to the slopes of Hermon.",
+ r:["Matthew 17:1-8","Judges 4:6-14"]},
+nain:{n:"Nain",e:220,la:32.632,lo:35.345,k:"town",alt:"Nein",
+ d:"A village on the north slope of the Hill of Moreh. At its gate Jesus met a funeral procession and raised the only son of a widow — the first raising recorded in Luke.",
+ r:["Luke 7:11-17"]},
+caesareaphilippi:{n:"Caesarea Philippi",e:350,la:33.248,lo:35.694,k:"city",alt:"Paneas / Banias",
+ d:"A spring-fed shrine to Pan at the foot of Hermon, rebuilt by Philip the Tetrarch. Before a cliff face honeycombed with pagan niches Peter confessed: 'You are the Christ, the Son of the living God.'",
+ r:["Matthew 16:13-28","Mark 8:27-38"]},
+hermon:{n:"Mount Hermon",e:2814,la:33.416,lo:35.857,k:"mount",alt:"Sirion / Senir — 9,232 ft",
+ d:"The snow-capped northern boundary of the land and the source of the Jordan. Its high shoulder is the likeliest 'high mountain apart' where Jesus was transfigured six days after Peter's confession.",
+ r:["Matthew 17:1-13","Psalm 133:3","Deuteronomy 3:8-9"]},
+tyre:{n:"Tyre",e:10,la:33.271,lo:35.194,k:"city",alt:"Sur — Phoenician port",
+ d:"A great Phoenician harbour city outside Israel. Jesus withdrew here for quiet and was found by a Syrophoenician woman whose faith won the healing of her daughter.",
+ r:["Mark 7:24-30","Matthew 15:21-28","Matthew 11:21-22"]},
+sidon:{n:"Sidon",e:10,la:33.560,lo:35.375,k:"city",alt:"Saida",
+ d:"The northernmost point Jesus is recorded to have reached, twenty-five miles up the Phoenician coast. From here He turned back east and south through the Decapolis.",
+ r:["Mark 7:31","Matthew 15:21"]},
+ptolemais:{n:"Ptolemais",e:10,la:32.923,lo:35.070,k:"city",alt:"Acco / Acre",
+ d:"The chief harbour of the northern coast and the gateway between Phoenicia and the Plain of Esdraelon. Paul later stopped here on his last journey to Jerusalem.",
+ r:["Acts 21:7"]},
+caesarea:{n:"Caesarea Maritima",e:5,la:32.500,lo:34.892,k:"city",alt:"Herod's harbour capital",
+ d:"Herod the Great's engineered deep-water port and the seat of the Roman prefects — the residence of Pontius Pilate, who came up to Jerusalem only for the feasts.",
+ r:["Acts 10:1-48","Acts 23:23-35"]},
+carmel:{n:"Mount Carmel",e:546,la:32.734,lo:35.048,k:"mount",alt:"Karmel — 'the garden'",
+ d:"A wooded ridge thrusting into the sea and closing the coastal road. Elijah's contest with the prophets of Baal was fought on its heights.",
+ r:["1 Kings 18:19-46"]},
+megiddo:{n:"Megiddo",e:150,la:32.585,lo:35.184,k:"city",alt:"Har Megiddo / Armageddon",
+ d:"The fortress guarding the pass from the coastal plain into the Jezreel Valley — the most fought-over ground in the land, and the name behind Armageddon.",
+ r:["Revelation 16:16","2 Kings 23:29-30"]},
+scythopolis:{n:"Scythopolis",e:-120,la:32.503,lo:35.501,k:"city",alt:"Beth Shean — chief city of the Decapolis",
+ d:"The only city of the Decapolis west of the Jordan, commanding the junction of the Jezreel and Jordan valleys — the road Galilean pilgrims took to avoid Samaria.",
+ r:["Joshua 17:11","1 Samuel 31:10"]},
+pella:{n:"Pella",e:-50,la:32.451,lo:35.617,k:"city",alt:"One of the Decapolis",
+ d:"A Decapolis city in the eastern Jordan foothills. Eusebius records that the Jerusalem church fled here before the city fell in AD 70.",
+ r:["Mark 5:20","Mark 7:31"]},
+samaria:{n:"Samaria",e:430,la:32.277,lo:35.190,k:"city",alt:"Sebaste",
+ d:"The old capital of the northern kingdom, rebuilt by Herod and renamed for Augustus. Philip the evangelist later preached Christ in this city with great joy.",
+ r:["Acts 8:5-8","1 Kings 16:24"]},
+sychar:{n:"Sychar",e:520,la:32.213,lo:35.284,k:"town",alt:"Jacob's Well, near Shechem",
+ d:"A Samaritan village beside the plot Jacob gave Joseph. At its well, at the sixth hour, Jesus asked a woman for a drink and revealed Himself as the Messiah and the living water.",
+ r:["John 4:1-42","Genesis 33:18-20"]},
+gerizim:{n:"Mount Gerizim",e:881,la:32.200,lo:35.273,k:"mount",alt:"The Samaritan holy mountain",
+ d:"The mountain of blessing, and the site of the rival Samaritan temple destroyed in 128 BC. 'Our fathers worshipped on this mountain,' the woman said, pointing to its summit above her.",
+ r:["John 4:20-24","Deuteronomy 11:29"]},
+aenon:{n:"Aenon near Salim",e:-200,la:32.310,lo:35.529,k:"site",alt:"'Springs' — where water was plentiful",
+ d:"The stretch of the Jordan valley where John continued baptising while Jesus' disciples baptised nearby, and where John said, 'He must increase, but I must decrease.'",
+ r:["John 3:22-36"]},
+ephraim:{n:"Ephraim",e:850,la:31.955,lo:35.301,k:"town",alt:"Et-Taybeh",
+ d:"A village on the edge of the wilderness north-east of Jerusalem. After the raising of Lazarus and the council's decision to kill Him, Jesus withdrew here with the disciples until Passover.",
+ r:["John 11:54"]},
+jericho:{n:"Jericho",e:-258,la:31.870,lo:35.444,k:"city",alt:"The City of Palms — 846 ft below sea level",
+ d:"The oldest walled city on earth, an oasis of balsam and palms in the Jordan valley. On His last ascent to Jerusalem Jesus healed blind Bartimaeus here and called Zacchaeus down from the sycamore.",
+ r:["Luke 19:1-10","Mark 10:46-52","Luke 10:30-37","Joshua 6"]},
+bethabara:{n:"Bethany beyond Jordan",e:-370,la:31.837,lo:35.553,k:"site",alt:"Bethabara — 'the house of the crossing'",
+ d:"The ford east of Jericho where John was baptising. Here Jesus was baptised and the Spirit descended as a dove; here He also sheltered in the final winter of His ministry.",
+ r:["John 1:28-34","Matthew 3:13-17","John 10:40-42"]},
+wilderness:{n:"Wilderness of Judea",e:366,la:31.876,lo:35.428,k:"site",alt:"Mount of Temptation (trad. Jebel Quruntul)",
+ d:"The chalk badlands falling from the Judean watershed to the Dead Sea — waterless, barren, and empty. Here Jesus fasted forty days and was tempted by the devil.",
+ r:["Matthew 4:1-11","Luke 4:1-13","Mark 1:12-13"]},
+qumran:{n:"Qumran",e:-340,la:31.741,lo:35.459,k:"site",alt:"Community of the Dead Sea Scrolls",
+ d:"A separatist Jewish settlement above the north-west shore of the Dead Sea. Its scrolls, hidden in the surrounding caves, preserve the Scriptures read in Jesus' generation.",
+ r:[]},
+jerusalem:{n:"Jerusalem",e:754,la:31.778,lo:35.235,k:"capital",alt:"Zion, the City of the Great King — 2,500 ft",
+ d:"The city of David and of the Temple, filling to several times its size at the three pilgrim feasts. Jesus came up to it repeatedly through His ministry, taught in its courts, and was crucified and raised outside its wall.",
+ r:["John 2:13-25","John 5:1-15","John 7:1-52","Matthew 21:1-17","Luke 13:34-35"]},
+olives:{n:"Mount of Olives",e:826,la:31.778,lo:35.254,k:"mount",alt:"Har HaZeitim — 2,700 ft",
+ d:"The ridge east of the city, across the Kidron. From its western slope Jesus wept over Jerusalem, on its summit He gave the Olivet Discourse, and from here He ascended.",
+ r:["Luke 19:41-44","Matthew 24-25","Acts 1:9-12","Zechariah 14:4"]},
+gethsemane:{n:"Gethsemane",e:700,la:31.7795,lo:35.2397,k:"site",alt:"'Oil press' — at the foot of Olivet",
+ d:"An olive grove across the Kidron where Jesus often met with His disciples. Here He prayed in agony, sweating as it were great drops of blood, and here He was betrayed and arrested.",
+ r:["Matthew 26:36-56","Mark 14:32-52","Luke 22:39-53","John 18:1-12"]},
+golgotha:{n:"Golgotha",e:760,la:31.7784,lo:35.2296,k:"site",alt:"'The place of a skull' — Calvary",
+ d:"An abandoned quarry outside the second wall, beside a public road, with a garden tomb cut in its rock face nearby. Here Jesus was crucified, buried, and raised on the third day.",
+ r:["John 19:17-42","Matthew 27:32-66","Mark 15:22-47","Luke 23:33-56"]},
+bethphage:{n:"Bethphage",e:790,la:31.7776,lo:35.2530,k:"town",alt:"'House of unripe figs'",
+ d:"A hamlet on the Mount of Olives marking the Sabbath-day limit of the city. From here the colt was fetched and the descent of the triumphal entry began.",
+ r:["Matthew 21:1-11","Mark 11:1-11","Luke 19:28-40"]},
+bethany:{n:"Bethany",e:700,la:31.7712,lo:35.2637,k:"town",alt:"El-Azariyeh — 'the place of Lazarus'",
+ d:"A village on the east slope of Olivet, two miles from the city, and the home of Mary, Martha and Lazarus. Jesus lodged here in Passion Week, raised Lazarus here, and was anointed here for burial.",
+ r:["John 11:1-46","John 12:1-11","Luke 10:38-42","Mark 11:11"]},
+bethlehem:{n:"Bethlehem",e:775,la:31.705,lo:35.202,k:"town",alt:"Beth Lechem — 'house of bread'",
+ d:"The village of David, five miles south of Jerusalem, where Jesus was born in the days of Herod the king, as Micah had foretold.",
+ r:["Micah 5:2","Luke 2:1-20","Matthew 2:1-12"]},
+emmaus:{n:"Emmaus",e:240,la:31.8339,lo:34.9894,k:"town",alt:"Nicopolis / Qubeibeh — site disputed",
+ d:"A village some sixty stadia from Jerusalem. On the afternoon of the resurrection Jesus walked its road with two disciples and opened to them all the Scriptures concerning Himself.",
+ r:["Luke 24:13-35"]},
+hebron:{n:"Hebron",e:927,la:31.532,lo:35.095,k:"city",alt:"Kiriath-Arba — the patriarchs' burial place",
+ d:"The highest city in the land, in the southern hill country, where Abraham, Isaac and Jacob were buried and where David first reigned.",
+ r:["Genesis 23:19","2 Samuel 2:1-4"]},
+machaerus:{n:"Machaerus",e:700,la:31.567,lo:35.625,k:"site",alt:"Herod's fortress in Perea",
+ d:"A fortress-palace on a cone of rock above the Dead Sea's eastern shore. Josephus names it as the prison where John the Baptist was held and beheaded at Herod's birthday feast.",
+ r:["Matthew 14:1-12","Mark 6:14-29"]},
+joppa:{n:"Joppa",e:30,la:32.054,lo:34.752,k:"city",alt:"Yafo",
+ d:"The ancient harbour of Judea, where Jonah took ship from the presence of the Lord and where Peter was later lodging when he was sent to Cornelius.",
+ r:["Jonah 1:3","Acts 9:36-43","Acts 10:9-23"]}
+};
+
+/* Regional and water labels — context only, no pins */
+var REGIONS=[
+ {n:"GALILEE",la:32.80,lo:35.30,c:"reg"},{n:"SAMARIA",la:32.28,lo:35.10,c:"reg"},
+ {n:"JUDEA",la:31.62,lo:35.00,c:"reg"},{n:"PEREA",la:31.95,lo:35.75,c:"reg"},
+ {n:"DECAPOLIS",la:32.45,lo:35.95,c:"reg"},{n:"IDUMEA",la:31.16,lo:34.95,c:"reg"},
+ {n:"PHOENICIA",la:33.42,lo:35.30,c:"reg"},{n:"GAULANITIS",la:32.98,lo:35.83,c:"reg"},
+ {n:"ITUREA",la:33.45,lo:36.15,c:"reg"},{n:"Sea of Galilee",la:32.80,lo:35.59,c:"wat"},
+ {n:"The Dead Sea",la:31.42,lo:35.47,c:"wat"},{n:"The Great Sea",la:32.30,lo:34.45,c:"wat"},
+ {n:"Jordan River",la:32.20,lo:35.51,c:"wat"}
+];
+
+/* Years */
+var YEARS=[
+ null,
+ {t:"The Year of Inauguration",s:"c. AD 27–28",
+  d:"From the Jordan to Cana, Jerusalem and Samaria. Jesus is baptised, tempted, and gathers His first disciples; He cleanses the Temple at His first Passover and is received where He was least expected — among Samaritans."},
+ {t:"The Year of Popularity",s:"c. AD 28–29",
+  d:"Capernaum becomes home and the lake becomes a pulpit. Crowds swell across Galilee, the Twelve are appointed and sent out, John the Baptist is executed, and five thousand are fed on the north-eastern shore."},
+ {t:"The Year of Opposition",s:"c. AD 29–30",
+  d:"Withdrawal to Tyre, Sidon and Caesarea Philippi; then the long ascent to Jerusalem through Perea and Jericho, the Passion, the empty tomb, and the Ascension from Olivet."}
+];
+
+/* Journeys — path = ordered site ids */
+var JOURNEYS=[
+{y:1,t:"Nazareth to the Jordan — the Baptism",r:"Matthew 3:13-17 · John 1:28",
+ p:["nazareth","scythopolis","bethabara"],
+ note:"Down the Jezreel corridor and south along the Jordan to John's ford, where the heavens open and the Father speaks. This is the opening of the public ministry — everything that follows, Cana included, comes after it."},
+{y:1,t:"Into the wilderness — the Temptation",r:"Matthew 4:1-11 · Luke 4:1-13",
+ p:["bethabara","wilderness"],
+ note:"Driven by the Spirit into the Judean badlands for forty days of fasting and testing."},
+{y:1,t:"The first disciples, and the wedding at Cana",r:"John 1:35-2:11",
+ p:["wilderness","bethabara","cana"],
+ note:"Forty days after the baptism He returns to the ford, and John — who had already seen the Spirit descend on Him — points Him out as the Lamb of God. Andrew, Peter, Philip and Nathanael follow Him north, and on the third day the water becomes wine."},
+{y:1,t:"Down to Capernaum",r:"John 2:12",
+ p:["cana","capernaum"],
+ note:"A first short stay by the lake with His mother and brothers before going up to the feast."},
+{y:1,t:"First Passover — the Temple cleansed",r:"John 2:13-25",
+ p:["capernaum","scythopolis","jericho","jerusalem"],
+ note:"The pilgrim route down the Jordan and up from Jericho; in the courts He overturns the tables and speaks of the temple of His body."},
+{y:1,t:"Judean countryside — 'He must increase'",r:"John 3:22-36",
+ p:["jerusalem","aenon"],
+ note:"Months of baptising in the Judean and Jordan valley country while John's ministry draws to its close."},
+{y:1,t:"Through Samaria — the woman at the well",r:"John 4:1-42",
+ p:["aenon","sychar"],
+ note:"He must needs go through Samaria: at Jacob's well the living water is offered, and a village believes."},
+{y:1,t:"Return to Galilee — the official's son healed",r:"John 4:43-54",
+ p:["sychar","cana","capernaum"],
+ note:"A word spoken at Cana heals a dying boy twenty miles away in Capernaum — the second sign."},
+
+{y:2,t:"Rejected at Nazareth, at home in Capernaum",r:"Luke 4:16-31 · Matthew 4:13-17",
+ p:["capernaum","nazareth","capernaum"],
+ note:"He reads Isaiah in the synagogue where He was raised, is thrust out of the town, and settles by the sea."},
+{y:2,t:"Beside the sea — the call of the four",r:"Mark 1:16-20 · Luke 5:1-11",
+ p:["capernaum","gennesaret","capernaum"],
+ note:"Nets are left on the shore: Simon, Andrew, James and John are called to catch men."},
+{y:2,t:"First circuit of Galilee",r:"Matthew 4:23-25 · Mark 1:35-39",
+ p:["capernaum","chorazin","cana","nazareth","sepphoris","capernaum"],
+ note:"Teaching in their synagogues throughout all Galilee, and His fame spreads into Syria."},
+{y:2,t:"Up to a feast — the pool of Bethesda",r:"John 5:1-47",
+ p:["capernaum","scythopolis","jericho","jerusalem","capernaum"],
+ note:"A man lame thirty-eight years is healed on the Sabbath, and the opposition of the rulers hardens."},
+{y:2,t:"The Sermon on the Mount",r:"Matthew 5-7 · Luke 6:17-49",
+ p:["capernaum","beatitudes","capernaum"],
+ note:"The Twelve are appointed on the hillside above the lake and the constitution of the kingdom is proclaimed."},
+{y:2,t:"To Nain — the widow's son raised",r:"Luke 7:11-17",
+ p:["capernaum","cana","nain","tabor","capernaum"],
+ note:"At the gate of a village on Moreh, a funeral is turned back and the dead man sits up and speaks."},
+{y:2,t:"The storm stilled — the Gerasene demoniac",r:"Mark 4:35-5:20",
+ p:["capernaum","kursi","gadara","kursi","capernaum"],
+ note:"Across the lake by night: the wind rebuked, a legion cast out, and the healed man sent to tell the Decapolis."},
+{y:2,t:"Jairus' daughter, and Nazareth again",r:"Mark 5:21-6:6",
+ p:["capernaum","nazareth","capernaum"],
+ note:"'Talitha cumi' in Capernaum; then a second rejection at Nazareth, where He could do no mighty work."},
+{y:2,t:"The Twelve sent out — John beheaded",r:"Mark 6:7-29 · Matthew 14:1-12",
+ p:["capernaum","chorazin","magdala","tiberias","capernaum"],
+ note:"The apostles go two by two through the villages; in Perea, at Machaerus, John is executed by Antipas."},
+{y:2,t:"Five thousand fed — walking on the sea",r:"Mark 6:30-56 · John 6:1-21",
+ p:["capernaum","bethsaida","gennesaret","capernaum"],
+ note:"A desert place near Bethsaida, five loaves and two fish; then the fourth watch of the night on the water."},
+{y:2,t:"Woe to Chorazin and Bethsaida",r:"Matthew 11:20-24 · John 6:22-71",
+ p:["capernaum","chorazin","bethsaida","capernaum"],
+ note:"The towns that saw most repented least; the Bread of Life discourse thins the crowds to the Twelve."},
+
+{y:3,t:"Withdrawal to Tyre and Sidon",r:"Mark 7:24-31 · Matthew 15:21-28",
+ p:["capernaum","ptolemais","tyre","sidon"],
+ note:"Outside the land, a Gentile mother's persistence wins the healing of her daughter."},
+{y:3,t:"Through the Decapolis — four thousand fed",r:"Mark 7:31-8:9",
+ p:["sidon","caesareaphilippi","hippos","gadara","pella","hippos"],
+ note:"A long arc back around the lake's eastern side, healing the deaf and dumb and feeding a Gentile multitude."},
+{y:3,t:"Dalmanutha, and the blind man of Bethsaida",r:"Mark 8:10-26",
+ p:["hippos","magdala","bethsaida"],
+ note:"A sign from heaven refused to the Pharisees; a blind man healed in two stages outside the town."},
+{y:3,t:"Caesarea Philippi — 'You are the Christ'",r:"Matthew 16:13-28 · Mark 8:27-38",
+ p:["bethsaida","caesareaphilippi"],
+ note:"At the pagan shrine below Hermon, Peter's confession — and the first plain word about the cross."},
+{y:3,t:"The Transfiguration",r:"Matthew 17:1-13 · Mark 9:2-13",
+ p:["caesareaphilippi","hermon","caesareaphilippi"],
+ note:"Six days later, up a high mountain apart: His face shone as the sun, and Moses and Elijah spoke of His exodus."},
+{y:3,t:"Back through Galilee to Capernaum",r:"Mark 9:30-50 · Matthew 17:24-27",
+ p:["caesareaphilippi","chorazin","capernaum"],
+ note:"He passes through Galilee privately, teaching the Twelve of His death; the temple tax is found in a fish."},
+{y:3,t:"Up to the Feast of Tabernacles",r:"John 7:1-10:21 · Luke 9:51-56",
+ p:["capernaum","samaria","sychar","jerusalem"],
+ note:"The last journey south through Samaria; in the Temple He cries, 'If any man thirst, let him come unto Me.'"},
+{y:3,t:"Dedication, then Perea",r:"John 10:22-42",
+ p:["jerusalem","bethabara"],
+ note:"At the Feast of Dedication in winter He is nearly stoned, and withdraws to the ford where John first baptised."},
+{y:3,t:"Bethany — Lazarus raised",r:"John 11:1-54",
+ p:["bethabara","bethany","ephraim"],
+ note:"Four days in the tomb, and a loud voice at the grave; the council resolves to kill Him, and He withdraws to Ephraim."},
+{y:3,t:"Through Jericho to Bethany",r:"Luke 19:1-28 · Mark 10:46-52",
+ p:["ephraim","jericho","bethany"],
+ note:"Bartimaeus receives sight, Zacchaeus receives salvation, and the last climb of 3,300 feet begins."},
+{y:3,t:"Passion Week — the Triumphal Entry",r:"Matthew 21:1-17 · Luke 19:28-44",
+ p:["bethany","bethphage","olives","jerusalem"],
+ note:"Down the Olivet road on a colt to shouts of Hosanna, weeping over the city as it comes into view."},
+{y:3,t:"Gethsemane, trial and Golgotha",r:"Matthew 26-27 · John 18-19",
+ p:["jerusalem","gethsemane","jerusalem","golgotha"],
+ note:"The upper room, the agony among the olive presses, the night trials, and the cross outside the wall."},
+{y:3,t:"The Emmaus road",r:"Luke 24:13-35",
+ p:["jerusalem","emmaus","jerusalem"],
+ note:"On the first day of the week He walks seven miles unrecognised, and is known in the breaking of bread."},
+{y:3,t:"Galilee — the sea of Tiberias",r:"John 21:1-23 · Matthew 28:16-20",
+ p:["jerusalem","scythopolis","tiberias","capernaum","beatitudes"],
+ note:"Breakfast on the shore, Peter restored three times, and the Great Commission given on a Galilean mountain."},
+{y:3,t:"The Ascension from Olivet",r:"Luke 24:50-53 · Acts 1:1-12",
+ p:["capernaum","jericho","bethany","olives"],
+ note:"Forty days after the resurrection, He lifts His hands to bless them, and a cloud receives Him out of their sight."}
+];
+//===DATA-END===
+
+//===TERRAIN-START===
+/* ---------- domain ---------- */
+var LO0=34.30,LO1=36.60,LA0=30.70,LA1=33.80;      // map bounds (degrees)
+var KMLON=93.9,KMLAT=111.0;                        // km per degree at this latitude
+var CLON=(LO0+LO1)/2,CLAT=(LA0+LA1)/2;
+function wx(lo){return (lo-CLON)*KMLON;}
+function wz(la){return -(la-CLAT)*KMLAT;}
+
+/* ---------- interpolation ---------- */
+function pw(t,p){
+  var n=p.length;
+  if(t<=p[0][0])return p[0][1];
+  if(t>=p[n-1][0])return p[n-1][1];
+  for(var i=1;i<n;i++){
+    if(t<=p[i][0]){
+      var a=p[i-1],b=p[i],u=(t-a[0])/(b[0]-a[0]);
+      u=u*u*(3-2*u);
+      return a[1]+(b[1]-a[1])*u;
+    }
+  }
+  return p[n-1][1];
+}
+function ss(a,b,x){var t=(x-a)/(b-a);t=t<0?0:t>1?1:t;return t*t*(3-2*t);}
+function clamp(v,a,b){return v<a?a:v>b?b:v;}
+
+/* ---------- structural profiles (lat -> value) ---------- */
+var COAST=[[30.70,34.40],[31.00,34.44],[31.30,34.49],[31.60,34.57],[32.00,34.73],
+           [32.30,34.83],[32.60,34.93],[32.83,35.06],[33.00,35.10],[33.10,35.13],
+           [33.27,35.19],[33.45,35.28],[33.60,35.37],[33.80,35.47]];
+var RIFT =[[30.70,35.34],[31.00,35.41],[31.20,35.43],[31.45,35.47],[31.70,35.50],
+           [31.90,35.53],[32.20,35.55],[32.45,35.56],[32.70,35.58],[32.90,35.60],
+           [33.10,35.61],[33.35,35.63],[33.60,35.67],[33.80,35.72]];
+var RIFTEL=[[30.70,80],[30.92,-260],[31.05,-420],[31.35,-432],[31.70,-434],
+            [31.82,-390],[31.90,-280],[32.05,-290],[32.25,-255],[32.45,-230],
+            [32.62,-222],[32.80,-212],[32.95,-205],[33.05,-120],[33.15,0],
+            [33.30,110],[33.45,300],[33.60,600],[33.80,900]];
+var RIDGE=[[30.70,34.82],[31.00,34.94],[31.25,35.03],[31.53,35.08],[31.78,35.21],
+           [32.00,35.26],[32.20,35.28],[32.38,35.24],[32.52,35.20],[32.68,35.28],
+           [32.85,35.36],[33.00,35.42],[33.20,35.46],[33.45,35.53],[33.80,35.62]];
+var RIDGEEL=[[30.70,380],[30.95,560],[31.15,780],[31.35,960],[31.53,1005],
+             [31.72,900],[31.80,865],[32.00,890],[32.18,900],[32.32,770],
+             [32.45,330],[32.56,140],[32.66,330],[32.80,490],[32.95,650],
+             [33.10,880],[33.25,1010],[33.42,880],[33.60,1150],[33.80,1500]];
+var EASTEL=[[30.70,1450],[31.00,1300],[31.25,1120],[31.50,980],[31.75,890],
+            [32.00,870],[32.25,930],[32.50,880],[32.70,720],[32.90,850],
+            [33.10,900],[33.30,1000],[33.55,1250],[33.80,1450]];
+
+/* ---------- discrete massifs & basins (lo, la, radius-lo, radius-la, amp, rot) ---------- */
+var DOMES=[
+ [35.857,33.416,0.31,0.27,1590,0],   // Hermon
+ [36.20,33.62,0.36,0.30,900,0],      // Anti-Lebanon spur
+ [35.62,33.74,0.30,0.24,1150,0],     // Lebanon foothills
+ [35.42,33.00,0.17,0.15,430,0],      // Meron / Upper Galilee
+ [35.390,32.687,0.032,0.032,520,0],  // Mount Tabor
+ [35.06,32.72,0.14,0.09,520,-0.85],  // Carmel ridge (rotated NW-SE)
+ [35.40,32.50,0.10,0.055,360,0.30],  // Gilboa
+ [35.34,32.615,0.042,0.032,270,0],   // Hill of Moreh
+ [35.80,32.95,0.26,0.24,150,0],      // Golan plateau
+ [35.86,32.33,0.26,0.21,340,0],      // Gilead
+ [34.98,30.95,0.32,0.26,330,0],      // Negev highlands
+ [35.24,32.56,0.24,0.085,-60,0.12],  // Jezreel valley
+ [35.285,32.215,0.048,0.032,-330,0], // Shechem pass (Ebal / Gerizim)
+ [35.272,32.199,0.018,0.016,120,0],  // Mount Gerizim
+ [35.60,33.09,0.09,0.085,-420,0],    // Hula basin
+ [35.06,31.86,0.09,0.10,-160,0],     // Ayalon / Beth Horon gap
+ [35.190,32.280,0.050,0.040,-250,0], // basin below Samaria/Sebaste
+ [35.300,31.955,0.050,0.050,260,0],  // Ephraim ridge
+ [35.255,31.782,0.055,0.062,110,0]   // Jerusalem / Olivet block
+];
+function domeSum(lo,la){
+  var s=0;
+  for(var i=0;i<DOMES.length;i++){
+    var d=DOMES[i],dx=lo-d[0],dy=la-d[1];
+    if(d[5]){var c=Math.cos(d[5]),sn=Math.sin(d[5]),ox=dx*c-dy*sn;dy=dx*sn+dy*c;dx=ox;}
+    var r=Math.sqrt((dx/d[2])*(dx/d[2])+(dy/d[3])*(dy/d[3]));
+    if(r<1){var f=1-r;s+=d[4]*f*f*(3-2*f);}
+  }
+  return s;
+}
+
+/* ---------- lakes ---------- */
+function ell(lo,la,clo,cla,rlo,rla){
+  var dx=(lo-clo)/rlo,dy=(la-cla)/rla,r=Math.sqrt(dx*dx+dy*dy);
+  return r<1?1-r:0;
+}
+var LK_GAL={clo:35.5905,cla:32.7975,rlo:0.0620,rla:0.1005,lev:-212};
+var LK_DS1={clo:35.4750,cla:31.5550,rlo:0.0730,rla:0.2180,lev:-430};
+var LK_DS2={clo:35.4250,cla:31.1600,rlo:0.0480,rla:0.1250,lev:-430};
+var LK_HUL={clo:35.6050,cla:33.0850,rlo:0.0270,rla:0.0430,lev:68};
+function lakeAt(lo,la){
+  if(ell(lo,la,LK_GAL.clo,LK_GAL.cla,LK_GAL.rlo,LK_GAL.rla)>0)return LK_GAL;
+  if(ell(lo,la,LK_DS1.clo,LK_DS1.cla,LK_DS1.rlo,LK_DS1.rla)>0)return LK_DS1;
+  if(ell(lo,la,LK_DS2.clo,LK_DS2.cla,LK_DS2.rlo,LK_DS2.rla)>0)return LK_DS2;
+  if(ell(lo,la,LK_HUL.clo,LK_HUL.cla,LK_HUL.rlo,LK_HUL.rla)>0)return LK_HUL;
+  return null;
+}
+
+/* ---------- value noise ---------- */
+function hsh(i,j){
+  var n=Math.sin(i*127.1+j*311.7)*43758.5453123;
+  return n-Math.floor(n);
+}
+function vn(x,y){
+  var i=Math.floor(x),j=Math.floor(y),fx=x-i,fy=y-j;
+  fx=fx*fx*(3-2*fx);fy=fy*fy*(3-2*fy);
+  var a=hsh(i,j),b=hsh(i+1,j),c=hsh(i,j+1),d=hsh(i+1,j+1);
+  return (a+(b-a)*fx)+((c+(d-c)*fx)-(a+(b-a)*fx))*fy;
+}
+function fbm(x,y,oct){
+  var s=0,a=0.5,f=1;
+  for(var i=0;i<oct;i++){s+=a*(vn(x*f,y*f)*2-1);f*=2.07;a*=0.5;}
+  return s;
+}
+
+/* ---------- elevation ---------- */
+function elevRaw(lo,la){
+  var lc=pw(la,COAST),rl=pw(la,RIFT),rd=pw(la,RIDGE),
+      re=pw(la,RIDGEEL),rf=pw(la,RIFTEL),ep=pw(la,EASTEL),e;
+  if(lo<lc){                                   // Mediterranean shelf
+    var d=lc-lo;
+    e=-14-1500*(1-Math.exp(-d*0.9));
+  }else if(lo<rd){                             // coastal plain -> hill crest
+    var t=(lo-lc)/Math.max(0.05,rd-lc);
+    e=14+(re-14)*Math.pow(ss(0.16,1.0,t),1.22);
+  }else if(lo<rl){                             // eastern descent into the rift
+    var u=(lo-rd)/Math.max(0.05,rl-rd);
+    e=rf+(re-rf)*Math.pow(1-u,1.75);
+  }else{                                       // Transjordan escarpment + plateau
+    var v=lo-rl;
+    e=rf+(ep-rf)*ss(0.012,0.190,v);
+    e-=300*ss(0.55,1.7,v);
+  }
+  e+=domeSum(lo,la);
+  var lk=lakeAt(lo,la);
+  if(lk){
+    var f=ell(lo,la,lk.clo,lk.cla,lk.rlo,lk.rla);
+    var dep=(lk===LK_GAL)?46:(lk===LK_HUL)?8:300;
+    e=Math.min(e,lk.lev-dep*Math.sqrt(f));
+  }
+  return e;
+}
+function elevAt(lo,la){
+  var e=elevRaw(lo,la);
+  var lk=lakeAt(lo,la);
+  if(lk)return e;                              // keep lake beds smooth
+  var amp=26+0.085*Math.max(e,0);
+  if(e<-30)amp=18;                             // calm the sea floor
+  var n=fbm(lo*34.0,la*34.0,5);
+  var ridged=1-Math.abs(fbm(lo*13.0,la*13.0,3));
+  e+=n*amp+ridged*amp*0.55*ss(120,900,Math.max(e,0));
+  return e;
+}
+//===TERRAIN-END===
+
+/*=============================== ENGINE ===============================*/
+var cv=document.getElementById("gl");
+var gl=cv.getContext("webgl",{antialias:true,alpha:false,preserveDrawingBuffer:false})||
+       cv.getContext("experimental-webgl",{antialias:true,alpha:false});
+if(!gl){document.getElementById("boot").innerHTML=
+ '<p style="letter-spacing:.06em;text-transform:none;font-size:14px">This map needs WebGL. '+
+ 'Please enable hardware acceleration or try another browser.</p>';throw new Error("no webgl");}
+
+/* ---------- mat4 ---------- */
+function m4(){return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]);}
+function persp(o,f,a,n,fa){var t=1/Math.tan(f/2);o[0]=t/a;o[1]=0;o[2]=0;o[3]=0;o[4]=0;o[5]=t;o[6]=0;o[7]=0;
+ o[8]=0;o[9]=0;o[10]=(fa+n)/(n-fa);o[11]=-1;o[12]=0;o[13]=0;o[14]=2*fa*n/(n-fa);o[15]=0;return o;}
+function look(o,e,c,u){
+ var zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2],l=Math.hypot(zx,zy,zz);zx/=l;zy/=l;zz/=l;
+ var xx=u[1]*zz-u[2]*zy,xy=u[2]*zx-u[0]*zz,xz=u[0]*zy-u[1]*zx;l=Math.hypot(xx,xy,xz)||1;xx/=l;xy/=l;xz/=l;
+ var yx=zy*xz-zz*xy,yy=zz*xx-zx*xz,yz=zx*xy-zy*xx;
+ o[0]=xx;o[1]=yx;o[2]=zx;o[3]=0;o[4]=xy;o[5]=yy;o[6]=zy;o[7]=0;o[8]=xz;o[9]=yz;o[10]=zz;o[11]=0;
+ o[12]=-(xx*e[0]+xy*e[1]+xz*e[2]);o[13]=-(yx*e[0]+yy*e[1]+yz*e[2]);o[14]=-(zx*e[0]+zy*e[1]+zz*e[2]);o[15]=1;return o;}
+function mul(o,a,b){for(var i=0;i<4;i++){var b0=b[i*4],b1=b[i*4+1],b2=b[i*4+2],b3=b[i*4+3];
+ for(var j=0;j<4;j++)o[i*4+j]=b0*a[j]+b1*a[4+j]+b2*a[8+j]+b3*a[12+j];}return o;}
+function proj(m,x,y,z){
+ var w=m[3]*x+m[7]*y+m[11]*z+m[15];
+ return[(m[0]*x+m[4]*y+m[8]*z+m[12])/w,(m[1]*x+m[5]*y+m[9]*z+m[13])/w,(m[2]*x+m[6]*y+m[10]*z+m[14])/w,w];}
+
+/* ---------- shader helpers ---------- */
+function sh(t,src){var s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);
+ if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s)+"\n"+src);return s;}
+function prog(v,f,attrs){
+ var p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,v));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,f));
+ gl.linkProgram(p);if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
+ p.a={};p.u={};
+ var na=gl.getProgramParameter(p,gl.ACTIVE_ATTRIBUTES);
+ for(var i=0;i<na;i++){var n=gl.getActiveAttrib(p,i).name;p.a[n]=gl.getAttribLocation(p,n);}
+ var nu=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
+ for(var k=0;k<nu;k++){var m=gl.getActiveUniform(p,k).name.replace(/\[0\]$/,"");p.u[m]=gl.getUniformLocation(p,m);}
+ return p;}
+function buf(data,type){var b=gl.createBuffer();var t=type||gl.ARRAY_BUFFER;
+ gl.bindBuffer(t,b);gl.bufferData(t,data,gl.STATIC_DRAW);return b;}
+
+/*---------------------------- programs ----------------------------*/
+var P_LAND=prog(
+"precision highp float;attribute vec2 aXZ;attribute float aE;attribute vec2 aG;attribute vec3 aC;"+
+"uniform mat4 uMVP;uniform float uVE;uniform vec3 uSun;uniform vec3 uCam;"+
+"varying vec3 vC;varying float vF;"+
+"void main(){float y=aE*0.001*uVE;vec3 p=vec3(aXZ.x,y,aXZ.y);"+
+"vec3 n=normalize(vec3(-aG.x*0.001*uVE,1.0,-aG.y*0.001*uVE));"+
+"float d=max(dot(n,uSun),0.0);float amb=0.44+0.26*n.y;"+
+"vec3 c=aC*(amb+0.86*d);"+
+"vec3 v=normalize(uCam-p);vec3 h=normalize(uSun+v);"+
+"c+=vec3(0.05,0.048,0.042)*pow(max(dot(n,h),0.0),14.0);"+
+"vC=c;vF=clamp((length(uCam-p)-300.0)/560.0,0.0,1.0);gl_Position=uMVP*vec4(p,1.0);}",
+"precision mediump float;varying vec3 vC;varying float vF;uniform vec3 uFog;"+
+"void main(){gl_FragColor=vec4(mix(vC,uFog,vF*0.62),1.0);}");
+
+var P_WATER=prog(
+"precision highp float;attribute vec2 aXZ;attribute float aE;attribute float aD;"+
+"uniform mat4 uMVP;uniform float uVE;uniform vec3 uCam;"+
+"varying float vD;varying vec3 vV;varying float vF;"+
+"void main(){vec3 p=vec3(aXZ.x,aE*0.001*uVE,aXZ.y);vD=aD;"+
+"vec3 tc=uCam-p;float dd=length(tc);vV=tc/dd;"+
+"vF=clamp((dd-300.0)/560.0,0.0,1.0);gl_Position=uMVP*vec4(p,1.0);}",
+"precision mediump float;varying float vD;varying vec3 vV;varying float vF;"+
+"uniform vec3 uSun;uniform vec3 uShallow;uniform vec3 uDeep;uniform vec3 uFog;"+
+"void main(){float t=clamp(vD/260.0,0.0,1.0);vec3 c=mix(uShallow,uDeep,t);"+
+"vec3 v=normalize(vV);vec3 n=vec3(0.0,1.0,0.0);vec3 h=normalize(uSun+v);"+
+"float spec=pow(max(dot(n,h),0.0),60.0);c+=vec3(0.55)*spec*0.5;"+
+"float fres=pow(1.0-max(dot(n,v),0.0),3.0);c=mix(c,vec3(0.86,0.89,0.90),fres*0.30);"+
+"float a=mix(0.72,0.95,t);gl_FragColor=vec4(mix(c,uFog,vF*0.62),a);}");
+
+var P_SKIRT=prog(
+"precision highp float;attribute vec3 aP;attribute float aE;attribute float aB;"+
+"uniform mat4 uMVP;uniform float uVE;varying float vB;varying float vE;"+
+"void main(){float y=aE*0.001*uVE;vB=aB;vE=aE;gl_Position=uMVP*vec4(aP.x,y,aP.z,1.0);}",
+"precision mediump float;varying float vB;varying float vE;"+
+"void main(){float s=fract(vE/210.0);float band=0.90+0.10*smoothstep(0.42,0.5,s)*step(s,0.62);"+
+"vec3 top=vec3(0.62,0.575,0.50);vec3 bot=vec3(0.185,0.175,0.168);"+
+"vec3 c=mix(top,bot,pow(vB,0.72))*band;gl_FragColor=vec4(c,1.0);}");
+
+var P_LINE=prog(
+"precision highp float;attribute vec2 aXZ;attribute float aE;attribute float aA;"+
+"attribute vec2 aDir;attribute float aSide;attribute float aT;"+
+"uniform mat4 uMVP;uniform float uVE;uniform vec3 uCam;uniform float uW;uniform float uLift;"+
+"varying float vT;varying float vS;"+
+"void main(){vec3 p=vec3(aXZ.x,aE*0.001*uVE+aA+uLift,aXZ.y);"+
+"vec3 tc=uCam-p;float dist=length(tc);tc/=dist;"+
+"vec3 dv=vec3(aDir.x,0.0,aDir.y);float dl=length(dv);"+
+"vec3 d=dl<0.0001?vec3(1.0,0.0,0.0):dv/dl;vec3 o=cross(d,tc);"+
+"float ol=length(o);o=ol<0.001?vec3(1.0,0.0,0.0):o/ol;"+
+"p+=o*aSide*uW*dist;vT=aT;vS=aSide;gl_Position=uMVP*vec4(p,1.0);}",
+"precision mediump float;varying float vT;varying float vS;"+
+"uniform vec3 uColor;uniform vec3 uGlow;uniform float uAlpha;uniform float uTime;"+
+"uniform float uRep;uniform float uDash;uniform float uReveal;"+
+"void main(){if(vT>uReveal)discard;"+
+"float f=fract(vT*uRep-uTime*0.42);"+
+"float pulse=smoothstep(0.0,0.10,f)*(1.0-smoothstep(0.16,0.46,f));"+
+"vec3 c=mix(uColor,uGlow,pulse*uDash*0.75);"+
+"float edge=smoothstep(1.0,0.52,abs(vS));"+
+"float head=smoothstep(0.045,0.0,uReveal-vT);"+
+"c=mix(c,uGlow,head*uDash*0.9);"+
+"gl_FragColor=vec4(c,uAlpha*edge);}");
+
+var P_PIN=prog(
+"precision highp float;attribute vec2 aXZ;attribute float aE;attribute vec2 aQ;"+
+"attribute vec3 aC;attribute float aS;"+
+"uniform mat4 uMVP;uniform float uVE;uniform vec3 uCam;uniform vec3 uR;uniform vec3 uU;uniform float uPx;"+
+"varying vec2 vQ;varying vec3 vC;"+
+"void main(){vec3 g=vec3(aXZ.x,aE*0.001*uVE,aXZ.y);float d=length(uCam-g);"+
+"float s=aS*d*uPx;vec3 p=g+uU*s+uR*aQ.x*s+uU*aQ.y*s;"+
+"vQ=aQ;vC=aC;gl_Position=uMVP*vec4(p,1.0);}",
+"precision mediump float;varying vec2 vQ;varying vec3 vC;"+
+"void main(){vec2 q=vQ;float d1=length(q-vec2(0.0,0.30))-0.60;"+
+"float t=clamp((0.30-q.y)/1.30,0.0,1.0);float r=mix(0.60,0.0,pow(t,0.55));"+
+"float d2=max(abs(q.x)-r,q.y-0.30);float d=min(d1,d2);"+
+"float a=smoothstep(0.045,-0.005,d);if(a<0.01)discard;"+
+"float ring=smoothstep(-0.155,-0.115,d);"+
+"vec3 c=mix(vC,vec3(0.98),ring);"+
+"float dot0=smoothstep(0.02,-0.02,length(q-vec2(0.0,0.30))-0.19);"+
+"c=mix(c,vec3(0.98,0.98,0.98),dot0);"+
+"gl_FragColor=vec4(c,a);}");
+
+var P_SKY=prog(
+"precision mediump float;attribute vec2 aP;varying vec2 vP;"+
+"void main(){vP=aP;gl_Position=vec4(aP,0.999,1.0);}",
+"precision mediump float;varying vec2 vP;uniform vec3 uA;uniform vec3 uB;"+
+"void main(){float t=clamp(vP.y*0.5+0.5,0.0,1.0);gl_FragColor=vec4(mix(uB,uA,pow(t,0.85)),1.0);}");
+var SKYBUF=buf(new Float32Array([-1,-1,3,-1,-1,3]));
+
+/*---------------------------- land colour ----------------------------*/
+function mixc(a,b,t){return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
+var STOPS=[
+ [-450,[0.780,0.745,0.660]],[-150,[0.745,0.712,0.618]],[0,[0.612,0.652,0.470]],
+ [130,[0.560,0.612,0.412]],[380,[0.640,0.640,0.442]],[700,[0.700,0.640,0.462]],
+ [1050,[0.660,0.585,0.430]],[1500,[0.600,0.540,0.430]],[2050,[0.585,0.560,0.530]],
+ [2450,[0.720,0.712,0.700]],[2750,[0.960,0.960,0.955]]];
+var DRY=[0.815,0.742,0.588],DRY2=[0.700,0.632,0.492];
+function landCol(e,lo,la,slope){
+  var c;
+  if(e<=STOPS[0][0])c=STOPS[0][1];
+  else if(e>=STOPS[STOPS.length-1][0])c=STOPS[STOPS.length-1][1];
+  else for(var i=1;i<STOPS.length;i++){
+    if(e<=STOPS[i][0]){c=mixc(STOPS[i-1][1],STOPS[i][1],(e-STOPS[i-1][0])/(STOPS[i][0]-STOPS[i-1][0]));break;}
+  }
+  var rd=pw(la,RIDGE);
+  var dry=clamp(ss(32.55,31.15,la)*0.55+ss(0.02,0.34,lo-rd)*0.85+ss(31.75,31.05,la)*0.45,0,1);
+  dry*=1-ss(1750,2500,e);
+  c=mixc(c,mixc(DRY,DRY2,ss(250,1100,e)),dry*0.86);
+  var rock=clamp(slope*0.85,0,1)*(1-ss(2500,2750,e));
+  c=mixc(c,[0.520,0.492,0.452],rock*0.55);
+  var g=(hsh(Math.floor(lo*220),Math.floor(la*220))-0.5)*0.045;
+  return[clamp(c[0]+g,0,1),clamp(c[1]+g,0,1),clamp(c[2]+g,0,1)];
+}
+
+/*---------------------------- terrain grid ----------------------------*/
+var NX=264,NZ=420;
+var dLo=(LO1-LO0)/NX,dLa=(LA1-LA0)/NZ;
+var dxKm=dLo*KMLON,dzKm=dLa*KMLAT;
+var EG=new Float32Array((NX+1)*(NZ+1));
+function bldGrid(){
+  for(var j=0;j<=NZ;j++){var la=LA0+j*dLa;
+    for(var i=0;i<=NX;i++)EG[j*(NX+1)+i]=elevAt(LO0+i*dLo,la);}
+}
+function eg(i,j){i=i<0?0:i>NX?NX:i;j=j<0?0:j>NZ?NZ:j;return EG[j*(NX+1)+i];}
+
+var TILES=[],TX=3,TZ=4;
+function bldTerrain(){
+  var sx=Math.ceil(NX/TX),sz=Math.ceil(NZ/TZ);
+  for(var tz=0;tz<TZ;tz++)for(var tx=0;tx<TX;tx++){
+    var i0=tx*sx,i1=Math.min(NX,i0+sx),j0=tz*sz,j1=Math.min(NZ,j0+sz);
+    var w=i1-i0+1,h=j1-j0+1,V=new Float32Array(w*h*8),k=0;
+    for(var j=j0;j<=j1;j++){var la=LA0+j*dLa,z=wz(la);
+      for(var i=i0;i<=i1;i++){
+        var lo=LO0+i*dLo,e=eg(i,j);
+        var gx=(eg(i+1,j)-eg(i-1,j))/(2*dxKm),gz=(eg(i,j+1)-eg(i,j-1))/(2*dzKm);
+        var slope=Math.min(1,Math.hypot(gx,gz)/260);
+        var c=landCol(e,lo,la,slope);
+        V[k++]=wx(lo);V[k++]=z;V[k++]=e;V[k++]=gx;V[k++]=gz;V[k++]=c[0];V[k++]=c[1];V[k++]=c[2];
+      }}
+    var I=new Uint16Array((w-1)*(h-1)*6),n=0;
+    for(var jj=0;jj<h-1;jj++)for(var ii=0;ii<w-1;ii++){
+      var a=jj*w+ii;
+      I[n++]=a;I[n++]=a+1;I[n++]=a+w;
+      I[n++]=a+1;I[n++]=a+w+1;I[n++]=a+w;}
+    TILES.push({v:buf(V),i:buf(I,gl.ELEMENT_ARRAY_BUFFER),n:n});
+  }
+}
+
+/*---------------------------- water ----------------------------*/
+var WATER=null;
+function waterLevel(lo,la){
+  var lk=lakeAt(lo,la);
+  if(lk)return lk.lev;
+  if(lo<pw(la,COAST))return 0;
+  return null;
+}
+function bldWater(){
+  var V=[],I=[],map={},n=0;
+  function vid(i,j){
+    var key=i*100000+j;
+    if(map[key]!==undefined)return map[key];
+    var lo=LO0+i*dLo,la=LA0+j*dLa,lv=waterLevel(lo,la);
+    if(lv===null){
+      var s=[[1,0],[-1,0],[0,1],[0,-1]];
+      for(var q=0;q<4;q++){var l2=waterLevel(LO0+(i+s[q][0])*dLo,LA0+(j+s[q][1])*dLa);if(l2!==null){lv=l2;break;}}
+      if(lv===null)lv=0;
+    }
+    var d=Math.max(0,lv-eg(i,j));
+    V.push(wx(lo),wz(la),lv,d);
+    map[key]=n;return n++;
+  }
+  for(var j=0;j<NZ;j++)for(var i=0;i<NX;i++){
+    var lo=LO0+(i+0.5)*dLo,la=LA0+(j+0.5)*dLa;
+    if(waterLevel(lo,la)===null)continue;
+    var a=vid(i,j),b=vid(i,j+1),c=vid(i+1,j),d2=vid(i+1,j+1);
+    I.push(a,c,b,c,d2,b);
+  }
+  var IA;
+  if(n>65535){
+    var ext=gl.getExtension("OES_element_index_uint");
+    IA=ext?new Uint32Array(I):new Uint16Array(I.map(function(x){return x&65535;}));
+    WATER={u32:!!ext};
+  }else{IA=new Uint16Array(I);WATER={u32:false};}
+  WATER.v=buf(new Float32Array(V));
+  WATER.i=buf(IA,gl.ELEMENT_ARRAY_BUFFER);
+  WATER.n=I.length;
+  WATER.type=(IA instanceof Uint32Array)?gl.UNSIGNED_INT:gl.UNSIGNED_SHORT;
+}
+
+/*---------------------------- skirt & base ----------------------------*/
+var SKIRT=null,BASE_E=-1600;
+function bldSkirt(){
+  var V=[],I=[],n=0;
+  function wall(pts){
+    var s=n;
+    for(var k=0;k<pts.length;k++){
+      var p=pts[k];
+      V.push(p[0],0,p[1],p[2],0);
+      V.push(p[0],0,p[1],BASE_E,1);
+      n+=2;
+    }
+    for(var k2=0;k2<pts.length-1;k2++){
+      var a=s+k2*2;I.push(a,a+1,a+2,a+2,a+1,a+3);
+    }
+  }
+  var top=[],bot=[],left=[],right=[];
+  for(var i=0;i<=NX;i++){var lo=LO0+i*dLo;
+    top.push([wx(lo),wz(LA1),eg(i,NZ)]);bot.push([wx(lo),wz(LA0),eg(i,0)]);}
+  for(var j=0;j<=NZ;j++){var la=LA0+j*dLa;
+    left.push([wx(LO0),wz(la),eg(0,j)]);right.push([wx(LO1),wz(la),eg(NX,j)]);}
+  wall(top.slice().reverse());wall(bot);wall(left);wall(right.slice().reverse());
+  var s0=n,x0=wx(LO0),x1=wx(LO1),z0=wz(LA0),z1=wz(LA1);
+  V.push(x0,0,z0,BASE_E,1, x1,0,z0,BASE_E,1, x1,0,z1,BASE_E,1, x0,0,z1,BASE_E,1);
+  n+=4;I.push(s0,s0+1,s0+2,s0,s0+2,s0+3);
+  var ext=gl.getExtension("OES_element_index_uint");
+  var IA=(n>65535&&ext)?new Uint32Array(I):new Uint16Array(I);
+  SKIRT={v:buf(new Float32Array(V)),i:buf(IA,gl.ELEMENT_ARRAY_BUFFER),n:I.length,
+         type:(IA instanceof Uint32Array)?gl.UNSIGNED_INT:gl.UNSIGNED_SHORT};
+}
+
+/*---------------------------- site positions ----------------------------*/
+var SP={};
+function sitePos(lo,la){
+  var lk=lakeAt(lo,la);
+  if(!lk)return[lo,la];
+  var dx=(lo-lk.clo)/lk.rlo,dy=(la-lk.cla)/lk.rla,r=Math.hypot(dx,dy);
+  if(r<1e-4){dx=1;dy=0;r=1;}
+  var k=1.07/r;
+  return[lk.clo+dx*k*lk.rlo,lk.cla+dy*k*lk.rla];
+}
+function bldSites(){
+  for(var id in SITES){
+    var s=SITES[id],q=sitePos(s.lo,s.la),e=elevAt(q[0],q[1]);
+    SP[id]={lo:q[0],la:q[1],x:wx(q[0]),z:wz(q[1]),e:e,trueE:(s.e!==undefined?s.e:Math.round(elevRaw(q[0],q[1])))};
+  }
+}
+
+/*---------------------------- polyline ribbons ----------------------------*/
+function ribbon(pts){
+  var n=pts.length,V=new Float32Array(n*2*8),I=[],k=0,tot=0;
+  for(var i=1;i<n;i++)tot+=Math.hypot(pts[i].x-pts[i-1].x,pts[i].z-pts[i-1].z);
+  var run=0;
+  for(var i2=0;i2<n;i2++){
+    if(i2>0)run+=Math.hypot(pts[i2].x-pts[i2-1].x,pts[i2].z-pts[i2-1].z);
+    var pv=pts[Math.max(0,i2-1)],nx=pts[Math.min(n-1,i2+1)],cu=pts[i2];
+    var ix=cu.x-pv.x,iz=cu.z-pv.z,il=Math.hypot(ix,iz);
+    var ox=nx.x-cu.x,oz=nx.z-cu.z,ol=Math.hypot(ox,oz);
+    if(il<1e-6){ix=ox;iz=oz;il=ol;}
+    if(ol<1e-6){ox=ix;oz=iz;ol=il;}
+    if(il>1e-6){ix/=il;iz/=il;}
+    if(ol>1e-6){ox/=ol;oz/=ol;}
+    var dx=ix+ox,dz=iz+oz,l=Math.hypot(dx,dz);
+    if(l<1e-4){dx=ix;dz=iz;l=Math.hypot(dx,dz);}   /* 180-degree turnaround */
+    if(l<1e-4){dx=1;dz=0;l=1;}                      /* degenerate fallback */
+    dx/=l;dz/=l;
+    var t=tot>0?run/tot:0;
+    for(var s=0;s<2;s++){
+      V[k++]=pts[i2].x;V[k++]=pts[i2].z;V[k++]=pts[i2].e;V[k++]=pts[i2].a;
+      V[k++]=dx;V[k++]=dz;V[k++]=s?1:-1;V[k++]=t;
+    }
+  }
+  for(var i3=0;i3<n-1;i3++){var v=i3*2;I.push(v,v+1,v+2,v+2,v+1,v+3);}
+  return{v:buf(V),i:buf(new Uint16Array(I),gl.ELEMENT_ARRAY_BUFFER),n:I.length,len:tot};
+}
+function samplePath(ids,lift){
+  var pts=[],first=true;
+  for(var s=0;s<ids.length-1;s++){
+    var a=SP[ids[s]],b=SP[ids[s+1]];
+    var d=Math.hypot(b.x-a.x,b.z-a.z);
+    if(d<0.12)continue;
+    var K=Math.max(8,Math.min(70,Math.round(d/2.6)));
+    var arc=lift?Math.min(7.5,d*0.034):0;
+    for(var k=(first?0:1);k<=K;k++){
+      var u=k/K,lo=a.lo+(b.lo-a.lo)*u,la=a.la+(b.la-a.la)*u;
+      var lk=lakeAt(lo,la),e=lk?lk.lev:elevAt(lo,la);
+      pts.push({x:wx(lo),z:wz(la),e:e+25,a:Math.sin(Math.PI*u)*arc});
+    }
+    first=false;
+  }
+  return pts;
+}
+var ROUTES=[],RIVER=null;
+function bldRoutes(){
+  for(var i=0;i<JOURNEYS.length;i++){
+    var pts=samplePath(JOURNEYS[i].p,true);
+    ROUTES.push(pts.length>1?ribbon(pts):null);
+  }
+  var jr=[[35.628,33.20],[35.610,33.10],[35.600,32.98],[35.596,32.90],[35.588,32.87],
+          [35.575,32.70],[35.570,32.62],[35.556,32.55],[35.545,32.44],[35.556,32.34],
+          [35.540,32.24],[35.549,32.13],[35.535,32.02],[35.545,31.93],[35.532,31.85],[35.528,31.79]];
+  var rp=[];
+  for(var q=0;q<jr.length-1;q++){
+    for(var k2=(q?1:0);k2<=8;k2++){
+      var u=k2/8,lo=jr[q][0]+(jr[q+1][0]-jr[q][0])*u,la=jr[q][1]+(jr[q+1][1]-jr[q][1])*u;
+      rp.push({x:wx(lo),z:wz(la),e:elevAt(lo,la)+12,a:0});
+    }
+  }
+  RIVER=ribbon(rp);
+}
+
+/*---------------------------- pins ----------------------------*/
+var IDS=[],PIN={},QUAD=[[-1,-1],[1,-1],[1,1],[-1,1]];
+function bldPins(){
+  for(var id in SITES)IDS.push(id);
+  PIN.v=gl.createBuffer();PIN.i=gl.createBuffer();
+  PIN.data=new Float32Array(IDS.length*4*9);
+  PIN.idx=new Uint16Array(IDS.length*6);
+  updPins();
+}
+var COL_ACTIVE=[0.667,0.0,0.0],COL_CTX=[0.102,0.102,0.102],COL_SEL=[0.667,0.0,0.0];
+function updPins(){
+  var d=PIN.data,k=0;
+  for(var i=0;i<IDS.length;i++){
+    var id=IDS[i],p=SP[id],act=ACTIVE[id],sel=(id===selSite);
+    var c=sel?COL_SEL:act?COL_ACTIVE:COL_CTX;
+    var sz=sel?23:act?16:10.5;
+    for(var q=0;q<4;q++){
+      d[k++]=p.x;d[k++]=p.z;d[k++]=p.e;d[k++]=QUAD[q][0];d[k++]=QUAD[q][1];
+      d[k++]=c[0];d[k++]=c[1];d[k++]=c[2];d[k++]=sz;
+    }
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,PIN.v);gl.bufferData(gl.ARRAY_BUFFER,d,gl.DYNAMIC_DRAW);
+}
+var pinOrder=[];
+function sortPins(eye){
+  pinOrder.length=0;
+  for(var i=0;i<IDS.length;i++){
+    var p=SP[IDS[i]];
+    pinOrder.push([i,(p.x-eye[0])*(p.x-eye[0])+(p.z-eye[2])*(p.z-eye[2])]);
+  }
+  pinOrder.sort(function(a,b){return b[1]-a[1];});
+  var k=0;
+  for(var j=0;j<pinOrder.length;j++){
+    var v=pinOrder[j][0]*4;
+    PIN.idx[k++]=v;PIN.idx[k++]=v+1;PIN.idx[k++]=v+2;
+    PIN.idx[k++]=v;PIN.idx[k++]=v+2;PIN.idx[k++]=v+3;
+  }
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,PIN.i);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,PIN.idx,gl.DYNAMIC_DRAW);
+}
+
+/*---------------------------- camera ----------------------------*/
+var cam={tx:0,ty:0,tz:0,dist:470,yaw:-0.20,pitch:0.62},
+    camT=null,camT0=0,camT1=0,camA=null;
+var FOV=Math.PI/4.2;
+function eyePos(){
+  var cp=Math.cos(cam.pitch);
+  return[cam.tx+cam.dist*Math.sin(cam.yaw)*cp,
+         cam.ty+cam.dist*Math.sin(cam.pitch),
+         cam.tz+cam.dist*Math.cos(cam.yaw)*cp];
+}
+function flyTo(t,ms){
+  camA={tx:cam.tx,ty:cam.ty,tz:cam.tz,dist:cam.dist,yaw:cam.yaw,pitch:cam.pitch};
+  camT={};for(var k in camA)camT[k]=(t[k]!==undefined)?t[k]:camA[k];
+  var dy=camT.yaw-camA.yaw;while(dy>Math.PI)dy-=2*Math.PI;while(dy<-Math.PI)dy+=2*Math.PI;
+  camT.yaw=camA.yaw+dy;
+  camT0=performance.now();camT1=camT0+(ms||900);
+}
+function stepCam(now){
+  if(!camT)return;
+  var u=(now-camT0)/(camT1-camT0);
+  u=u<0?0:u>1?1:u;
+  var e=u<0.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2;
+  for(var k in camT)cam[k]=camA[k]+(camT[k]-camA[k])*e;
+  if(u>=1)camT=null;
+}
+var HOME={tx:0,ty:0,tz:58,dist:320,yaw:-0.20,pitch:0.60};
+function homeDist(){
+  var asp=(W&&H)?W/H:1.6;
+  return clamp(Math.max(320,378/asp),300,1100);
+}
+function frameSites(ids){
+  var x0=1e9,x1=-1e9,z0=1e9,z1=-1e9,ys=0,n=0;
+  for(var i=0;i<ids.length;i++){var p=SP[ids[i]];if(!p)continue;
+    x0=Math.min(x0,p.x);x1=Math.max(x1,p.x);z0=Math.min(z0,p.z);z1=Math.max(z1,p.z);ys+=p.e;n++;}
+  if(!n)return null;
+  var r=Math.max(Math.hypot(x1-x0,z1-z0)*0.5,14);
+  var r2=Math.max(Math.hypot(x1-x0,z1-z0)*0.5,3.5);
+  return{tx:(x0+x1)/2,ty:(ys/n)*0.001*VE,tz:(z0+z1)/2,
+         dist:clamp(r2*2.9+20,28,620),pitch:clamp(0.80-r2*0.0016,0.42,0.88)};
+}
+
+/*---------------------------- state ----------------------------*/
+var VE=6.5,year=1,selJ=-1,selSite=null,ACTIVE={},reveal=1,revealT0=0,tStart=performance.now();
+function computeActive(){
+  ACTIVE={};
+  var list=(selJ>=0)?[JOURNEYS[selJ]]:JOURNEYS.filter(function(j){return year===0||j.y===year;});
+  for(var i=0;i<list.length;i++)for(var k=0;k<list[i].p.length;k++)ACTIVE[list[i].p[k]]=1;
+  updPins();
+}
+var YCOL=[[0.102,0.102,0.102],[0.667,0.0,0.0],[0.102,0.102,0.102],[0.980,0.980,0.980]];
+var YGLOW=[[1,1,1],[1,0.62,0.55],[0.75,0.75,0.75],[0.75,0.0,0.0]];
+
+/*---------------------------- labels ----------------------------*/
+var LBOX=document.getElementById("labels"),LEL={},RLEL=[];
+function bldLabels(){
+  for(var i=0;i<IDS.length;i++){
+    (function(id){
+      var d=document.createElement("div");d.className="lb";d.textContent=SITES[id].n;
+      d.addEventListener("click",function(ev){ev.stopPropagation();showSite(id,true);});
+      LBOX.appendChild(d);LEL[id]=d;
+    })(IDS[i]);
+  }
+  for(var r=0;r<REGIONS.length;r++){
+    var R0=REGIONS[r],lk0=lakeAt(R0.lo,R0.la);
+    R0.e=(R0.n==="The Great Sea")?0:(lk0?lk0.lev:elevAt(R0.lo,R0.la));
+    var e=document.createElement("div");e.className="lb "+R0.c;e.textContent=R0.n;
+    LBOX.appendChild(e);RLEL.push(e);
+  }
+}
+function updLabels(mvp,W,H,eye){
+  var px=2*Math.tan(FOV/2)/H;
+  for(var i=0;i<IDS.length;i++){
+    var id=IDS[i],p=SP[id],el=LEL[id],act=ACTIVE[id],sel=(id===selSite);
+    var y=p.e*0.001*VE;
+    var q=proj(mvp,p.x,y,p.z);
+    if(q[3]<=0.1||q[0]<-1.25||q[0]>1.25||q[1]<-1.3||q[1]>1.3){el.style.display="none";continue;}
+    if(!act&&!sel&&cam.dist>260){el.style.display="none";continue;}
+    var sz=(sel?23:act?16:10.5);
+    var sx=(q[0]*0.5+0.5)*W,sy=(1-(q[1]*0.5+0.5))*H;
+    el.style.display="block";
+    el.className="lb"+(sel?" sel":act?"":" dim");
+    el.style.transform="translate(-50%,-100%) translate("+sx.toFixed(1)+"px,"+(sy-2.15*sz).toFixed(1)+"px)";
+  }
+  for(var r=0;r<REGIONS.length;r++){
+    var R=REGIONS[r],e2=RLEL[r],q2=proj(mvp,wx(R.lo),R.e*0.001*VE,wz(R.la));
+    if(q2[3]<=0.1||q2[0]<-1.2||q2[0]>1.2||q2[1]<-1.2||q2[1]>1.2||cam.dist<110){e2.style.display="none";continue;}
+    e2.style.display="block";
+    e2.style.transform="translate(-50%,-50%) translate("+((q2[0]*0.5+0.5)*W).toFixed(1)+"px,"+
+      ((1-(q2[1]*0.5+0.5))*H).toFixed(1)+"px)";
+  }
+}
+
+/*---------------------------- draw ----------------------------*/
+var W=0,H=0,DPR=1,mvp=m4(),pm=m4(),vm=m4(),LSX=0,LSY=0;
+function updLayout(){
+  if(!W||!H){LSX=LSY=0;return;}
+  var hid=uiEl.classList.contains("hide"),fl=0,fr=W,ft=0,fb=H;
+  if(hid){ft=96;fb=H-16;}
+  else if(W<900){
+    ft=100;
+    var Lm=document.getElementById("left").getBoundingClientRect();
+    var Rm=elR.classList.contains("off")?null:elR.getBoundingClientRect();
+    fb=Math.min(Lm.top,Rm?Rm.top:H)-8;
+    if(fb<ft+120){fb=H-70;}
+  }else{
+    fl=document.getElementById("left").getBoundingClientRect().right+8;
+    fr=elR.classList.contains("off")?W:elR.getBoundingClientRect().left-8;
+    ft=100;fb=H-72;
+  }
+  if(fb-ft<120){ft=96;fb=H-16;}
+  if(fr-fl<200){fl=0;fr=W;}
+  if(!isFinite(fl)||!isFinite(fr)||!isFinite(ft)||!isFinite(fb)){fl=0;fr=W;ft=0;fb=H;}
+  LSX=clamp(-2*(((fl+fr)/2)-W/2)/W,-0.65,0.65);
+  LSY=clamp(2*(((ft+fb)/2)-H/2)/H,-0.65,0.65);
+  if(!isFinite(LSX))LSX=0;
+  if(!isFinite(LSY))LSY=0;
+}
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  W=cv.clientWidth;H=cv.clientHeight;
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  gl.viewport(0,0,cv.width,cv.height);
+  HOME.dist=homeDist();
+  updLayout();
+}
+window.addEventListener("resize",resize);
+
+function bindA(p,name,size,stride,off){
+  var l=p.a[name];if(l===undefined||l<0)return;
+  gl.enableVertexAttribArray(l);gl.vertexAttribPointer(l,size,gl.FLOAT,false,stride*4,off*4);
+}
+function offAll(p){for(var k in p.a){if(p.a[k]>=0)gl.disableVertexAttribArray(p.a[k]);}}
+
+var SUN=(function(){var v=[-0.52,0.70,-0.49],l=Math.hypot(v[0],v[1],v[2]);return[v[0]/l,v[1]/l,v[2]/l];})();
+var FOG=[0.906,0.894,0.874];
+
+function drawLine(R,col,glow,alpha,wpx,dash,rev,px){
+  gl.bindBuffer(gl.ARRAY_BUFFER,R.v);
+  bindA(P_LINE,"aXZ",2,8,0);bindA(P_LINE,"aE",1,8,2);bindA(P_LINE,"aA",1,8,3);
+  bindA(P_LINE,"aDir",2,8,4);bindA(P_LINE,"aSide",1,8,6);bindA(P_LINE,"aT",1,8,7);
+  gl.uniform3fv(P_LINE.u.uColor,col);gl.uniform3fv(P_LINE.u.uGlow,glow);
+  gl.uniform1f(P_LINE.u.uAlpha,alpha);gl.uniform1f(P_LINE.u.uW,wpx*px);
+  gl.uniform1f(P_LINE.u.uDash,dash);gl.uniform1f(P_LINE.u.uReveal,rev);
+  gl.uniform1f(P_LINE.u.uRep,Math.max(2,Math.round(R.len/13)));
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,R.i);
+  gl.drawElements(gl.TRIANGLES,R.n,gl.UNSIGNED_SHORT,0);
+}
+
+function draw(now){
+  stepCam(now);
+  var t=(now-tStart)/1000;
+  var eye=eyePos(),tgt=[cam.tx,cam.ty,cam.tz];
+  persp(pm,FOV,W/H,1.2,3000);
+  pm[8]=LSX;pm[9]=LSY;
+  look(vm,eye,tgt,[0,1,0]);
+  mul(mvp,pm,vm);
+  var px=2*Math.tan(FOV/2)/H;
+
+  gl.clearColor(0.906,0.894,0.874,1);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+
+  /* sky */
+  gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
+  gl.useProgram(P_SKY);
+  gl.bindBuffer(gl.ARRAY_BUFFER,SKYBUF);bindA(P_SKY,"aP",2,2,0);
+  gl.uniform3f(P_SKY.u.uA,0.980,0.980,0.980);
+  gl.uniform3f(P_SKY.u.uB,0.855,0.838,0.812);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  offAll(P_SKY);
+
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+  gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
+
+  /* terrain */
+  gl.useProgram(P_LAND);
+  gl.uniformMatrix4fv(P_LAND.u.uMVP,false,mvp);
+  gl.uniform1f(P_LAND.u.uVE,VE);
+  gl.uniform3fv(P_LAND.u.uSun,SUN);
+  gl.uniform3fv(P_LAND.u.uCam,eye);
+  gl.uniform3fv(P_LAND.u.uFog,FOG);
+  for(var i=0;i<TILES.length;i++){
+    var T=TILES[i];
+    gl.bindBuffer(gl.ARRAY_BUFFER,T.v);
+    bindA(P_LAND,"aXZ",2,8,0);bindA(P_LAND,"aE",1,8,2);bindA(P_LAND,"aG",2,8,3);bindA(P_LAND,"aC",3,8,5);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,T.i);
+    gl.drawElements(gl.TRIANGLES,T.n,gl.UNSIGNED_SHORT,0);
+  }
+  offAll(P_LAND);
+
+  /* skirt */
+  gl.disable(gl.CULL_FACE);
+  gl.useProgram(P_SKIRT);
+  gl.uniformMatrix4fv(P_SKIRT.u.uMVP,false,mvp);
+  gl.uniform1f(P_SKIRT.u.uVE,VE);
+  gl.bindBuffer(gl.ARRAY_BUFFER,SKIRT.v);
+  bindA(P_SKIRT,"aP",3,5,0);bindA(P_SKIRT,"aE",1,5,3);bindA(P_SKIRT,"aB",1,5,4);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,SKIRT.i);
+  gl.drawElements(gl.TRIANGLES,SKIRT.n,SKIRT.type,0);
+  offAll(P_SKIRT);
+
+  /* water */
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthMask(false);
+  gl.useProgram(P_WATER);
+  gl.uniformMatrix4fv(P_WATER.u.uMVP,false,mvp);
+  gl.uniform1f(P_WATER.u.uVE,VE);
+  gl.uniform3fv(P_WATER.u.uCam,eye);
+  gl.uniform3fv(P_WATER.u.uSun,SUN);
+  gl.uniform3f(P_WATER.u.uShallow,0.443,0.639,0.667);
+  gl.uniform3f(P_WATER.u.uDeep,0.126,0.290,0.396);
+  gl.uniform3fv(P_WATER.u.uFog,FOG);
+  gl.bindBuffer(gl.ARRAY_BUFFER,WATER.v);
+  bindA(P_WATER,"aXZ",2,4,0);bindA(P_WATER,"aE",1,4,2);bindA(P_WATER,"aD",1,4,3);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,WATER.i);
+  gl.drawElements(gl.TRIANGLES,WATER.n,WATER.type,0);
+  offAll(P_WATER);
+  gl.depthMask(true);
+
+  /* routes + river (overlay) */
+  gl.disable(gl.DEPTH_TEST);
+  gl.useProgram(P_LINE);
+  gl.uniformMatrix4fv(P_LINE.u.uMVP,false,mvp);
+  gl.uniform1f(P_LINE.u.uVE,VE);
+  gl.uniform3fv(P_LINE.u.uCam,eye);
+  gl.uniform1f(P_LINE.u.uTime,t);
+  gl.uniform1f(P_LINE.u.uLift,0.10+0.030*VE);
+  drawLine(RIVER,[0.180,0.380,0.480],[0.4,0.6,0.7],0.85,1.6,0,1,px);
+
+  var rev=(selJ>=0)?clamp((now-revealT0)/1500,0,1):1;
+  for(var j=0;j<JOURNEYS.length;j++){
+    var J=JOURNEYS[j],R=ROUTES[j];if(!R)continue;
+    var vis=(selJ>=0)?(j===selJ):(year===0||J.y===year);
+    var ghost=(selJ>=0&&J.y===JOURNEYS[selJ].y&&j!==selJ);
+    if(!vis&&!ghost)continue;
+    var c=YCOL[J.y],g=YGLOW[J.y];
+    if(ghost){drawLine(R,c,g,0.13,2.0,0,1,px);continue;}
+    gl.uniform1f(P_LINE.u.uLift,0.09+0.028*VE);
+    drawLine(R,[0.09,0.09,0.09],[0.09,0.09,0.09],J.y===3?0.55:0.28,4.3,0,rev,px);
+    gl.uniform1f(P_LINE.u.uLift,0.10+0.030*VE);
+    drawLine(R,c,g,0.97,2.7,selJ===j?1:0.55,rev,px);
+  }
+  offAll(P_LINE);
+
+  /* pins */
+  var right=[Math.cos(cam.yaw),0,-Math.sin(cam.yaw)];
+  var up=[-Math.sin(cam.yaw)*Math.sin(cam.pitch),Math.cos(cam.pitch),-Math.cos(cam.yaw)*Math.sin(cam.pitch)];
+  sortPins(eye);
+  gl.useProgram(P_PIN);
+  gl.uniformMatrix4fv(P_PIN.u.uMVP,false,mvp);
+  gl.uniform1f(P_PIN.u.uVE,VE);
+  gl.uniform3fv(P_PIN.u.uCam,eye);
+  gl.uniform3fv(P_PIN.u.uR,right);
+  gl.uniform3fv(P_PIN.u.uU,up);
+  gl.uniform1f(P_PIN.u.uPx,px);
+  gl.bindBuffer(gl.ARRAY_BUFFER,PIN.v);
+  bindA(P_PIN,"aXZ",2,9,0);bindA(P_PIN,"aE",1,9,2);bindA(P_PIN,"aQ",2,9,3);
+  bindA(P_PIN,"aC",3,9,5);bindA(P_PIN,"aS",1,9,8);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,PIN.i);
+  gl.drawElements(gl.TRIANGLES,PIN.idx.length,gl.UNSIGNED_SHORT,0);
+  offAll(P_PIN);
+  gl.disable(gl.BLEND);
+  gl.enable(gl.DEPTH_TEST);
+
+  updLabels(mvp,W,H,eye);
+}
+function loop(now){draw(now);requestAnimationFrame(loop);}
+
+/*---------------------------- input ----------------------------*/
+var ptrs={},drag=null,moved=0;
+cv.addEventListener("pointerdown",function(e){
+  cv.setPointerCapture(e.pointerId);
+  ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+  if(Object.keys(ptrs).length===1){
+    drag={x:e.clientX,y:e.clientY,pan:(e.button===2||e.shiftKey||e.ctrlKey)};
+    moved=0;cv.classList.add("drag");camT=null;
+  }
+});
+cv.addEventListener("pointermove",function(e){
+  if(!ptrs[e.pointerId])return;
+  var ks=Object.keys(ptrs);
+  if(ks.length>=2){
+    var a=ptrs[ks[0]],b=ptrs[ks[1]],d0=Math.hypot(a.x-b.x,a.y-b.y);
+    ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+    a=ptrs[ks[0]];b=ptrs[ks[1]];
+    var d1=Math.hypot(a.x-b.x,a.y-b.y);
+    if(d0>1&&d1>1)cam.dist=clamp(cam.dist*d0/d1,26,900);
+    moved+=8;return;
+  }
+  if(!drag)return;
+  var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  drag.x=e.clientX;drag.y=e.clientY;ptrs[e.pointerId]={x:e.clientX,y:e.clientY};
+  moved+=Math.abs(dx)+Math.abs(dy);
+  if(drag.pan){
+    var k=cam.dist*0.0016;
+    var fx=Math.sin(cam.yaw),fz=Math.cos(cam.yaw);
+    cam.tx-=(Math.cos(cam.yaw)*dx-fx*dy)*k;
+    cam.tz-=(-Math.sin(cam.yaw)*dx-fz*dy)*k;
+    cam.tx=clamp(cam.tx,-190,190);cam.tz=clamp(cam.tz,-260,260);
+  }else{
+    cam.yaw-=dx*0.0052;
+    cam.pitch=clamp(cam.pitch+dy*0.0042,0.11,1.44);
+  }
+});
+function up(e){
+  delete ptrs[e.pointerId];
+  if(Object.keys(ptrs).length===0){
+    if(drag&&moved<6)pick(e.clientX,e.clientY);
+    drag=null;cv.classList.remove("drag");
+  }
+}
+cv.addEventListener("pointerup",up);
+cv.addEventListener("pointercancel",up);
+cv.addEventListener("contextmenu",function(e){e.preventDefault();});
+cv.addEventListener("wheel",function(e){
+  e.preventDefault();camT=null;
+  cam.dist=clamp(cam.dist*Math.exp(clamp(e.deltaY,-160,160)*0.0013),26,900);
+},{passive:false});
+
+function pick(cx,cy){
+  var r=cv.getBoundingClientRect(),mx=cx-r.left,my=cy-r.top;
+  var eye=eyePos(),px=2*Math.tan(FOV/2)/H,best=null,bd=1e9;
+  for(var i=0;i<IDS.length;i++){
+    var id=IDS[i],p=SP[id],act=ACTIVE[id];
+    if(!act&&id!==selSite&&cam.dist>260)continue;
+    var y=p.e*0.001*VE,q=proj(mvp,p.x,y,p.z);
+    if(q[3]<=0.1)continue;
+    var sz=(id===selSite?23:act?16:10.5);
+    var sx=(q[0]*0.5+0.5)*W,sy=(1-(q[1]*0.5+0.5))*H-sz;
+    var d=Math.hypot(mx-sx,my-sy);
+    if(d<sz*1.25&&d<bd){bd=d;best=id;}
+  }
+  if(best)showSite(best,true);
+}
+
+/*---------------------------- UI ----------------------------*/
+var elY=document.getElementById("yhead"),elJ=document.getElementById("jlist"),
+    elR=document.getElementById("right"),elRB=document.getElementById("rbody");
+var ROM=["","I","II","III"];
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");}
+
+function renderYear(){
+  if(year===0){
+    elY.innerHTML='<div class="kick">All three years</div><h2>The whole ministry</h2>'+
+      '<p>Every recorded journey from the baptism at the Jordan to the ascension from Olivet, '+
+      'laid over the land as it was under Herod Antipas and Pontius Pilate.</p>';
+  }else{
+    var Y=YEARS[year];
+    elY.innerHTML='<div class="kick">Year '+ROM[year]+' &middot; '+esc(Y.s)+'</div>'+
+      '<h2>'+esc(Y.t)+'</h2><p>'+esc(Y.d)+'</p>';
+  }
+  var html="",n=0;
+  for(var i=0;i<JOURNEYS.length;i++){
+    var J=JOURNEYS[i];
+    if(year!==0&&J.y!==year)continue;
+    n++;
+    html+='<button class="j'+(selJ===i?" on":"")+'" data-i="'+i+'">'+
+      '<div class="n">'+(year===0?"YEAR "+ROM[J.y]+" &middot; ":"")+String(n).padStart(2,"0")+'</div>'+
+      '<div class="t">'+esc(J.t)+'</div><div class="r">'+esc(J.r)+'</div>'+
+      '<div class="p">'+J.p.map(function(id){return esc(SITES[id].n);}).join(" &rarr; ")+'</div></button>';
+  }
+  elJ.innerHTML=html;
+  var bs=elJ.querySelectorAll(".j");
+  for(var b=0;b<bs.length;b++)bs[b].addEventListener("click",function(){selectJ(+this.dataset.i);});
+}
+function selectJ(i){
+  selJ=(selJ===i)?-1:i;
+  selSite=null;
+  computeActive();
+  renderYear();
+  if(selJ>=0){
+    revealT0=performance.now();
+    var f=frameSites(JOURNEYS[selJ].p);
+    if(f)flyTo(f,1100);
+    showJourney(selJ);
+  }else{elR.classList.add("off");}
+}
+function showJourney(i){
+  var J=JOURNEYS[i];
+  var stops=J.p.map(function(id,k){
+    return '<button class="jstop" data-id="'+id+'">'+(k+1)+'. '+esc(SITES[id].n)+'</button>';
+  }).join("");
+  elRB.innerHTML='<div class="kick">Year '+ROM[J.y]+' &middot; Journey</div>'+
+    '<h3>'+esc(J.t)+'</h3><div class="alt">'+esc(J.r)+'</div>'+
+    '<div class="d">'+esc(J.note)+'</div>'+
+    '<div class="rl"><span>Stops in order</span><div class="stops">'+stops+'</div></div>'+
+    '<div class="rl" style="border-top:0;padding-top:8px"><button class="tb" id="replay">Trace again</button></div>';
+  elR.classList.remove("off");
+  if(window.innerWidth<=900)leftEl.classList.add("min");
+  updLayout();
+  var ss2=elRB.querySelectorAll(".jstop");
+  for(var k=0;k<ss2.length;k++)ss2[k].addEventListener("click",function(){showSite(this.dataset.id,true);});
+  var rp=document.getElementById("replay");
+  if(rp)rp.addEventListener("click",function(){revealT0=performance.now();});
+}
+function showSite(id,fly){
+  var s=SITES[id],p=SP[id];
+  selSite=id;updPins();
+  var refs=s.r.length?'<div class="rl"><span>Scripture</span>'+
+    s.r.map(function(r){return "<u>"+esc(r)+"</u>";}).join("")+'</div>':"";
+  elRB.innerHTML='<div class="kick">'+esc(s.k==="capital"?"City of the Great King":s.k)+'</div>'+
+    '<h3>'+esc(s.n)+'</h3>'+(s.alt?'<div class="alt">'+esc(s.alt)+'</div>':"")+
+    '<div class="meta"><div>Elevation<b>'+(p.trueE>=0?"+":"")+p.trueE+' m</b></div>'+
+    '<div>Position<b>'+s.la.toFixed(3)+'&deg;N '+s.lo.toFixed(3)+'&deg;E</b></div></div>'+
+    '<div class="d">'+esc(s.d)+'</div>'+refs;
+  elR.classList.remove("off");
+  if(window.innerWidth<=900)leftEl.classList.add("min");
+  updLayout();
+  if(fly)flyTo({tx:p.x,ty:p.e*0.001*VE,tz:p.z,dist:clamp(cam.dist<150?cam.dist:118,40,150),
+                pitch:clamp(cam.pitch,0.30,0.74)},900);
+}
+document.getElementById("rClose").addEventListener("click",function(){
+  elR.classList.add("off");selSite=null;updPins();updLayout();});
+
+var gripEl=document.getElementById("grip"),leftEl=document.getElementById("left");
+gripEl.addEventListener("click",function(){
+  var min=leftEl.classList.toggle("min");
+  gripEl.setAttribute("aria-expanded",String(!min));
+  setTimeout(updLayout,300);
+});
+/* On a phone the journey list starts collapsed so the land is the first thing seen. */
+if(window.innerWidth<=900)leftEl.classList.add("min"),gripEl.setAttribute("aria-expanded","false");
+
+var tabs=document.querySelectorAll(".tab");
+for(var ti=0;ti<tabs.length;ti++)tabs[ti].addEventListener("click",function(){
+  for(var k=0;k<tabs.length;k++)tabs[k].classList.toggle("on",tabs[k]===this);
+  year=+this.dataset.y;selJ=-1;selSite=null;
+  computeActive();renderYear();
+  elR.classList.add("off");updLayout();
+  var ids=[];for(var a in ACTIVE)ids.push(a);
+  var f=frameSites(ids);
+  if(f){f.dist=Math.min(f.dist*1.12+30,640);flyTo(f,1100);}
+});
+document.getElementById("bReset").addEventListener("click",function(){flyTo(HOME,900);});
+var uiEl=document.getElementById("ui"),bUI=document.getElementById("bUI");
+bUI.addEventListener("click",function(){
+  uiEl.classList.toggle("hide");
+  bUI.textContent=uiEl.classList.contains("hide")?"Show panels":"Hide panels";
+  bUI.classList.toggle("hot",uiEl.classList.contains("hide"));updLayout();
+});
+/* The back link lives in the shared masthead now. Kept guarded so this
+   file still runs unchanged if it is ever lifted out on its own. */
+var elBack=document.getElementById("bBack");
+if(elBack)elBack.addEventListener("click",function(e){
+  if(EMBED)return;
+  if(document.referrer&&document.referrer.indexOf(location.host)>=0){e.preventDefault();history.back();}
+});
+document.getElementById("rv").addEventListener("input",function(){VE=+this.value;});
+window.addEventListener("keydown",function(e){
+  if(e.key==="Escape"){elR.classList.add("off");selSite=null;selJ=-1;computeActive();renderYear();updLayout();}
+  if(e.key==="h"||e.key==="H")bUI.click();
+});
+
+/*---------------------------- embed / query params ----------------------------*/
+var QP=(function(){
+  var o={},q=(location.search||"").replace(/^\?/,"");
+  if(!q)return o;
+  var a=q.split("&");
+  for(var i=0;i<a.length;i++){
+    var kv=a[i].split("=");
+    if(kv[0])o[decodeURIComponent(kv[0])]=decodeURIComponent((kv[1]||"").replace(/\+/g," "));
+  }
+  return o;
+})();
+var EMBED=(QP.embed==="1")||(function(){try{return window.self!==window.top;}catch(e){return true;}})();
+function applyEmbed(){
+  var bk=document.getElementById("bBack");
+  if(bk){
+    if(QP.back&&/^https?:\/\//i.test(QP.back))bk.setAttribute("href",QP.back);
+    else if(EMBED)bk.style.display="none";
+  }
+  if(EMBED)document.getElementById("ui").classList.add("embed");
+  var y=parseInt(QP.year,10);
+  if(y>=0&&y<=3){
+    year=y;
+    var tb=document.querySelectorAll(".tab");
+    for(var i=0;i<tb.length;i++)tb[i].classList.toggle("on",+tb[i].dataset.y===y);
+  }
+}
+
+/*------------------------- app switcher -------------------------*
+  Removed. The four studies now share one masthead, injected by
+  ../../shared/nepsis-shell.js, so this app no longer carries its
+  own hard-coded list of sibling URLs.
+ *---------------------------------------------------------------*/
+
+/*---------------------------- boot ----------------------------*/
+function boot(){
+  applyEmbed();
+  bldGrid();bldTerrain();bldWater();bldSkirt();bldSites();bldRoutes();bldPins();bldLabels();
+  resize();computeActive();renderYear();
+  document.getElementById("legend").classList.add("show");
+  HOME.dist=homeDist();cam.dist=HOME.dist*2.4;cam.pitch=1.16;cam.yaw=-0.55;cam.tx=HOME.tx;cam.tz=HOME.tz;
+  flyTo(HOME,2600);
+  requestAnimationFrame(loop);
+  var b=document.getElementById("boot");
+  b.classList.add("gone");setTimeout(function(){b.style.display="none";},600);
+  setTimeout(function(){var h=document.getElementById("hint");if(h)h.style.opacity=0;},9000);
+}
+setTimeout(boot,60);
+</script>
+</body>
+</html>

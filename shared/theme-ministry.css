@@ -1,0 +1,35 @@
+/* ==================================================================
+   Nepsis theme — the Ministry of Christ
+   ------------------------------------------------------------------
+   This app was already on the Nepsis palette, so there is nothing to
+   recolour. The work is structural: its own masthead, app menu and
+   back link are gone, because the shared shell now carries all three.
+   ================================================================== */
+
+:root {
+  --paper: #fafafa;
+  --ink: #000000;
+  --ink2: #1a1a1a;
+  --red: #aa0000;
+}
+
+/* ------------------------------------------------- masthead clearance */
+
+#top {
+  top: var(--nm-h);
+  padding-top: calc(9px + var(--st));
+}
+
+/* What is left of #top is the tool row; the shell carries the rest. */
+#tools { margin-left: auto }
+
+/* The desktop panels used to clear the app's own 62px brand block.
+   They now clear the shell instead. Below 900px this app turns them
+   into bottom sheets (top:auto), so the offset must NOT be repeated
+   there or the sheet snaps back to the top of the screen. */
+@media (min-width: 901px) {
+  #left, #right { top: calc(var(--nm-h) + 58px) }
+  #right { max-height: calc(100% - var(--nm-h) - 130px) }
+}
+
+.tb:focus-visible { outline: 2px solid var(--red); outline-offset: 2px }

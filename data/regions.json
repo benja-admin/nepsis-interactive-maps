@@ -1,0 +1,690 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.3,
+     32.85
+    ]
+   },
+   "properties": {
+    "name": "GALILEE",
+    "tier": 2,
+    "eras": [
+     "judges",
+     "united",
+     "divided",
+     "gospels"
+    ],
+    "erakey": "|judges|united|divided|gospels|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.25,
+     32.3
+    ]
+   },
+   "properties": {
+    "name": "SAMARIA",
+    "tier": 2,
+    "eras": [
+     "divided",
+     "gospels",
+     "acts"
+    ],
+    "erakey": "|divided|gospels|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.1,
+     31.6
+    ]
+   },
+   "properties": {
+    "name": "JUDEA",
+    "tier": 2,
+    "eras": [
+     "exile",
+     "intertest",
+     "gospels",
+     "acts"
+    ],
+    "erakey": "|exile|intertest|gospels|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     34.95,
+     31.25
+    ]
+   },
+   "properties": {
+    "name": "IDUMEA",
+    "tier": 3,
+    "eras": [
+     "intertest",
+     "gospels"
+    ],
+    "erakey": "|intertest|gospels|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.72,
+     31.95
+    ]
+   },
+   "properties": {
+    "name": "PEREA",
+    "tier": 3,
+    "eras": [
+     "gospels"
+    ],
+    "erakey": "|gospels|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.95,
+     32.55
+    ]
+   },
+   "properties": {
+    "name": "DECAPOLIS",
+    "tier": 3,
+    "eras": [
+     "gospels"
+    ],
+    "erakey": "|gospels|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     34.62,
+     31.6
+    ]
+   },
+   "properties": {
+    "name": "PHILISTIA",
+    "tier": 3,
+    "eras": [
+     "judges",
+     "united",
+     "divided"
+    ],
+    "erakey": "|judges|united|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.35,
+     33.9
+    ]
+   },
+   "properties": {
+    "name": "PHOENICIA",
+    "tier": 3,
+    "eras": [
+     "united",
+     "divided",
+     "gospels"
+    ],
+    "erakey": "|united|divided|gospels|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.8,
+     32.3
+    ]
+   },
+   "properties": {
+    "name": "GILEAD",
+    "tier": 3,
+    "eras": [
+     "judges",
+     "united",
+     "divided"
+    ],
+    "erakey": "|judges|united|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     36.2,
+     32.9
+    ]
+   },
+   "properties": {
+    "name": "BASHAN",
+    "tier": 3,
+    "eras": [
+     "exodus",
+     "divided"
+    ],
+    "erakey": "|exodus|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.95,
+     31.85
+    ]
+   },
+   "properties": {
+    "name": "AMMON",
+    "tier": 3,
+    "eras": [
+     "judges",
+     "united",
+     "divided"
+    ],
+    "erakey": "|judges|united|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.75,
+     31.4
+    ]
+   },
+   "properties": {
+    "name": "MOAB",
+    "tier": 3,
+    "eras": [
+     "exodus",
+     "judges",
+     "divided"
+    ],
+    "erakey": "|exodus|judges|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.45,
+     30.6
+    ]
+   },
+   "properties": {
+    "name": "EDOM",
+    "tier": 3,
+    "eras": [
+     "exodus",
+     "divided"
+    ],
+    "erakey": "|exodus|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     34.9,
+     30.9
+    ]
+   },
+   "properties": {
+    "name": "THE NEGEV",
+    "tier": 3,
+    "eras": [
+     "patriarchs",
+     "united",
+     "divided"
+    ],
+    "erakey": "|patriarchs|united|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     33.8,
+     29.6
+    ]
+   },
+   "properties": {
+    "name": "SINAI",
+    "tier": 2,
+    "eras": [
+     "exodus"
+    ],
+    "erakey": "|exodus|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     31.75,
+     30.85
+    ]
+   },
+   "properties": {
+    "name": "GOSHEN",
+    "tier": 3,
+    "eras": [
+     "patriarchs",
+     "exodus"
+    ],
+    "erakey": "|patriarchs|exodus|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.2,
+     32.0
+    ]
+   },
+   "properties": {
+    "name": "CANAAN",
+    "tier": 1,
+    "eras": [
+     "patriarchs",
+     "exodus"
+    ],
+    "erakey": "|patriarchs|exodus|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.3,
+     32.55
+    ]
+   },
+   "properties": {
+    "name": "ISRAEL",
+    "tier": 1,
+    "eras": [
+     "divided"
+    ],
+    "erakey": "|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     35.05,
+     31.45
+    ]
+   },
+   "properties": {
+    "name": "JUDAH",
+    "tier": 1,
+    "eras": [
+     "divided"
+    ],
+    "erakey": "|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     36.6,
+     33.9
+    ]
+   },
+   "properties": {
+    "name": "ARAM",
+    "tier": 2,
+    "eras": [
+     "united",
+     "divided"
+    ],
+    "erakey": "|united|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     42.6,
+     36.2
+    ]
+   },
+   "properties": {
+    "name": "ASSYRIA",
+    "tier": 1,
+    "eras": [
+     "divided"
+    ],
+    "erakey": "|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     44.6,
+     32.2
+    ]
+   },
+   "properties": {
+    "name": "BABYLONIA",
+    "tier": 1,
+    "eras": [
+     "exile"
+    ],
+    "erakey": "|exile|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     42.0,
+     34.5
+    ]
+   },
+   "properties": {
+    "name": "MESOPOTAMIA",
+    "tier": 1,
+    "eras": [
+     "patriarchs"
+    ],
+    "erakey": "|patriarchs|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     51.0,
+     31.5
+    ]
+   },
+   "properties": {
+    "name": "PERSIA",
+    "tier": 1,
+    "eras": [
+     "exile"
+    ],
+    "erakey": "|exile|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     48.6,
+     35.6
+    ]
+   },
+   "properties": {
+    "name": "MEDIA",
+    "tier": 2,
+    "eras": [
+     "exile"
+    ],
+    "erakey": "|exile|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     31.2,
+     27.5
+    ]
+   },
+   "properties": {
+    "name": "EGYPT",
+    "tier": 1,
+    "eras": [
+     "patriarchs",
+     "exodus",
+     "divided"
+    ],
+    "erakey": "|patriarchs|exodus|divided|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     39.5,
+     29.0
+    ]
+   },
+   "properties": {
+    "name": "ARABIA",
+    "tier": 2,
+    "eras": [
+     "exodus",
+     "acts"
+    ],
+    "erakey": "|exodus|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     28.6,
+     38.6
+    ]
+   },
+   "properties": {
+    "name": "ASIA",
+    "tier": 1,
+    "eras": [
+     "acts"
+    ],
+    "erakey": "|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     33.0,
+     39.0
+    ]
+   },
+   "properties": {
+    "name": "GALATIA",
+    "tier": 2,
+    "eras": [
+     "acts"
+    ],
+    "erakey": "|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     34.5,
+     37.2
+    ]
+   },
+   "properties": {
+    "name": "CILICIA",
+    "tier": 3,
+    "eras": [
+     "acts"
+    ],
+    "erakey": "|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     22.6,
+     41.1
+    ]
+   },
+   "properties": {
+    "name": "MACEDONIA",
+    "tier": 1,
+    "eras": [
+     "acts"
+    ],
+    "erakey": "|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     22.6,
+     38.3
+    ]
+   },
+   "properties": {
+    "name": "ACHAIA",
+    "tier": 1,
+    "eras": [
+     "acts"
+    ],
+    "erakey": "|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     33.1,
+     35.05
+    ]
+   },
+   "properties": {
+    "name": "CYPRUS",
+    "tier": 2,
+    "eras": [
+     "acts"
+    ],
+    "erakey": "|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     24.9,
+     35.3
+    ]
+   },
+   "properties": {
+    "name": "CRETE",
+    "tier": 2,
+    "eras": [
+     "acts"
+    ],
+    "erakey": "|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     13.2,
+     42.4
+    ]
+   },
+   "properties": {
+    "name": "ITALY",
+    "tier": 1,
+    "eras": [
+     "acts"
+    ],
+    "erakey": "|acts|"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     31.2,
+     33.6
+    ]
+   },
+   "properties": {
+    "name": "MEDITERRANEAN SEA",
+    "tier": 1,
+    "eras": [
+     "patriarchs",
+     "exodus",
+     "judges",
+     "united",
+     "divided",
+     "exile",
+     "intertest",
+     "gospels",
+     "acts"
+    ],
+    "erakey": "|patriarchs|exodus|judges|united|divided|exile|intertest|gospels|acts|"
+   }
+  }
+ ]
+}

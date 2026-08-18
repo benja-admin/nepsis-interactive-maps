@@ -1,0 +1,74 @@
+/* ==================================================================
+   Nepsis theme — Herod's Temple Mount
+   ------------------------------------------------------------------
+   This app already ships a complete light chrome behind
+   :root[data-theme=light], and the page is now pinned to it. So the
+   work here is small: re-point that palette at the Nepsis colours and
+   move the panels clear of the shared masthead.
+
+   The 3-D model is untouched — masonry, marble, gold, sky and sun are
+   the reconstruction itself and carry no interface meaning.
+
+   The four confidence dots in the passage guide (explicit / probable /
+   court / disputed) stay distinguishable rather than collapsing to one
+   accent: telling those four apart is the point of the guide.
+   ================================================================== */
+
+:root,
+:root[data-theme=light],
+:root:not([data-theme=dark]) {
+  --ink: #1a1a1a;
+  --ink-dim: rgba(26, 26, 26, .72);
+  --ink-faint: rgba(26, 26, 26, .52);
+  --panel: rgba(250, 250, 250, .94);
+  --panel-solid: #fafafa;
+  --edge: rgba(26, 26, 26, .14);
+  --edge-strong: rgba(26, 26, 26, .30);
+  --gold: #aa0000;
+  --gold-bright: #000000;
+  --stone: rgba(26, 26, 26, .55);
+  --accent: #96650a;
+  --shadow: 0 10px 30px rgba(0, 0, 0, .18);
+  --r: 2px;
+  --knob: rgba(26, 26, 26, .55);
+  --pinbg: rgba(250, 250, 250, .90);
+  --cross: #1a1a1a;
+  --crossEdge: #ffffff;
+  --thumbRing: #fafafa;
+  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* ------------------------------------------------- masthead clearance */
+
+#title { display: none }          /* the shell carries the title now */
+
+#rail {
+  top: calc(var(--nm-h) + 14px);
+  max-height: calc(100vh - var(--nm-h) - 28px);
+}
+
+#railToggle { top: calc(var(--nm-h) + 14px) }
+
+@media (max-width: 700px) {
+  /* Below 700px the rail docks to the bottom and the info card takes
+     the top slot; only the info card needs the offset. */
+  #rail { top: auto; bottom: 70px; max-height: 44vh }
+  #info { top: calc(var(--nm-h) + 16px) }
+}
+
+/* ------------------------------------------------------ passage guide */
+
+/* Four confidence levels, four readable values on paper: the accent,
+   a mid ink, a faint ink, and an amber for the disputed case. */
+.c-explicit { background: #aa0000 }
+.c-probable { background: rgba(26, 26, 26, .62) }
+.c-court    { background: rgba(26, 26, 26, .32) }
+.c-disputed { background: #96650a }
+
+/* ------------------------------------------------------------ boot */
+
+/* Ben's boot screen is already black-on-red; only the bar's fill was
+   off-palette (#ff0000). Paper on the red track reads further. */
+#boot .bar i { background: #fafafa }
+
+#boot .inner img { width: 150px; height: auto }

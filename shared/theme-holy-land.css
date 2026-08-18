@@ -1,0 +1,216 @@
+/* ==================================================================
+   Nepsis theme — the Holy Land map
+   ------------------------------------------------------------------
+   Loaded AFTER css/style.css, so it only has to say what changes.
+   Two jobs:
+     1. offset the app's own panels below the shared masthead
+     2. turn the dark navy chrome into the Nepsis paper palette
+
+   The map itself — imagery, hillshade, sky, terrain — is untouched.
+   ================================================================== */
+
+:root {
+  --bg: #1a1a1a;
+  --panel: rgba(250, 250, 250, .94);
+  --panel-solid: #fafafa;
+  --line: rgba(26, 26, 26, .14);
+  --line-strong: rgba(26, 26, 26, .26);
+  --text: #1a1a1a;
+  --muted: rgba(26, 26, 26, .60);
+  --dim: rgba(26, 26, 26, .42);
+  --gold: #aa0000;
+  --gold-dim: #aa0000;
+  --radius: 2px;
+  --font: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+/* ------------------------------------------------- masthead clearance */
+
+#topbar {
+  top: var(--nm-h);
+  background: linear-gradient(180deg,
+    rgba(250, 250, 250, .97),
+    rgba(250, 250, 250, .80) 70%,
+    rgba(250, 250, 250, 0));
+}
+
+#sidebar {
+  top: calc(var(--nm-h) + var(--topbar-h) - 30px);
+  max-height: calc(100% - var(--nm-h) - var(--topbar-h) - var(--timeline-h));
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .16);
+}
+
+#panel {
+  top: calc(var(--nm-h) + var(--topbar-h) + 6px);
+  max-height: calc(100% - var(--nm-h) - var(--topbar-h) - var(--timeline-h) - 26px);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .18);
+}
+
+#warn { top: calc(var(--nm-h) + var(--topbar-h) + 6px) }
+.side-handle { top: calc(var(--nm-h) + var(--topbar-h) + 14px) }
+
+/* The masthead carries the wordmark now. */
+.brand { display: none }
+
+@media (max-width: 900px) {
+  #sidebar { max-height: calc(100% - var(--nm-h) - var(--topbar-h) - 24px) }
+  #panel { max-height: 56vh }
+}
+
+/* --------------------------------------------------------- loading */
+
+#loading {
+  background: radial-gradient(120% 100% at 50% 0%, #ffffff 0%, #ececec 70%);
+}
+
+img.loading-logo { animation: none }
+
+#loading h1 {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--nm-mute);
+}
+
+.load-err pre { background: #1a1a1a; color: #fafafa }
+
+/* ------------------------------------------------- chrome recolour */
+
+kbd { background: var(--nm-fill) }
+
+.icon-btn { background: var(--nm-fill) }
+.icon-btn:hover { background: var(--nm-fill-2) }
+.icon-btn.active {
+  background: var(--nm-red-fill);
+  border-color: var(--nm-red-line);
+  color: var(--nm-red);
+}
+
+#search { background: var(--nm-white) }
+#search:focus { border-color: var(--nm-red-line); background: var(--nm-white) }
+#search::-webkit-search-cancel-button { filter: none }
+
+#results { box-shadow: 0 18px 44px rgba(0, 0, 0, .20) }
+.res:hover { background: var(--nm-fill) }
+.res-dot { box-shadow: 0 0 0 2px rgba(255, 255, 255, .95) }
+
+.mini-btn:hover {
+  background: var(--nm-fill);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+/* The two rules in style.css that hard-code white text. */
+.sec { color: var(--text) }
+.sec-head { color: var(--nm-black) }
+.sec-head:hover { background: var(--nm-fill) }
+.sec-head:hover .chev { color: var(--nm-red) }
+
+.badge {
+  color: var(--nm-red);
+  background: var(--nm-red-fill);
+  border-color: var(--nm-red-line);
+}
+
+.chip { background: var(--nm-fill) }
+.chip:hover { background: var(--nm-fill-2) }
+.chip.active {
+  background: var(--nm-red-fill);
+  border-color: var(--nm-red-line);
+  color: var(--nm-red);
+}
+
+input[type=range] { background: rgba(26, 26, 26, .16) }
+input[type=range]::-webkit-slider-thumb {
+  background: var(--nm-red);
+  border: 2px solid var(--nm-paper);
+}
+input[type=range]::-moz-range-thumb {
+  background: var(--nm-red);
+  border: 2px solid var(--nm-paper);
+}
+
+.leg-dot { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .95) }
+
+.cursor-elev { box-shadow: 0 8px 24px rgba(0, 0, 0, .14) }
+.ce-val { color: var(--nm-red) }
+
+.panel-close:hover { background: var(--nm-fill); color: var(--text) }
+.p-swatch { box-shadow: 0 0 0 1.5px rgba(255, 255, 255, .95) }
+.p-stats { background: rgba(26, 26, 26, .035) }
+.era-chip { background: var(--nm-fill) }
+.p-desc { color: var(--nm-ink) }
+
+.ref {
+  color: var(--nm-red);
+  background: var(--nm-red-fill);
+  border-color: var(--nm-red-line);
+}
+.ref:hover { background: var(--nm-red-fill-2) }
+
+.p-note { background: rgba(26, 26, 26, .035) }
+
+.btn { background: var(--nm-fill) }
+.btn:hover { background: var(--nm-fill-2) }
+
+/* The cross-app link on a site panel, e.g. Jerusalem → the city model. */
+.btn.nm-go {
+  background: var(--nm-red);
+  border-color: var(--nm-red);
+  color: var(--nm-white);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.btn.nm-go:hover { background: var(--nm-red-deep); border-color: var(--nm-red-deep) }
+
+#profile { box-shadow: 0 18px 48px rgba(0, 0, 0, .18) }
+.prof-stats .warn { color: var(--nm-red) }
+
+.hl-popup .maplibregl-popup-content { box-shadow: 0 10px 26px rgba(0, 0, 0, .20) }
+
+#help { background: rgba(0, 0, 0, .5) }
+.help-card { box-shadow: 0 30px 80px rgba(0, 0, 0, .35) }
+.help-card h3 { color: var(--nm-red) }
+.help-card li, .help-card p { color: var(--nm-ink) }
+
+#warn {
+  background: #fff2f2;
+  border-color: var(--nm-red-line);
+  color: var(--nm-red-deep);
+}
+
+#btnBack {
+  background: var(--nm-red-fill);
+  border-color: var(--nm-red-line);
+  color: var(--nm-red);
+}
+#btnBack:hover { background: var(--nm-red-fill-2); border-color: var(--nm-red) }
+
+#btnFullMap:hover {
+  background: var(--nm-red-fill);
+  border-color: var(--nm-red-line);
+  color: var(--nm-red);
+}
+
+.side-handle {
+  color: var(--nm-red);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .16);
+}
+.side-handle:hover { background: rgba(255, 255, 255, .98) }
+
+/* ------------------------------------------------------- MapLibre */
+
+/* The control icons ship black; style.css inverted them for the dark
+   panel. On paper they want to be left alone. */
+.maplibregl-ctrl-group button .maplibregl-ctrl-icon { filter: none }
+
+.maplibregl-ctrl-scale {
+  background: rgba(250, 250, 250, .88) !important;
+  color: var(--muted) !important;
+}
+.maplibregl-ctrl-attrib { background: rgba(250, 250, 250, .84) !important }
+.maplibregl-ctrl-attrib.maplibregl-compact { background: rgba(250, 250, 250, .92) !important }

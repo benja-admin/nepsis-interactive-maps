@@ -1,0 +1,198 @@
+/* ==================================================================
+   Nepsis theme — Ancient Jerusalem, c. AD 30
+   ------------------------------------------------------------------
+   The app ships a dark, gold-on-stone chrome. Everything is scoped
+   under #jrz-root, so this file re-points its variables and then
+   overrides the rules that hard-code a colour rather than using one.
+
+   The 3-D city is untouched: masonry, terrain, sky and sun stay as
+   they were built from the sources.
+
+   Confidence colours (excavated / probable / disputed) are kept as a
+   green-amber-red scale, only darkened for a paper ground. They carry
+   meaning, so they are the one place the five-colour rule bends —
+   flattening them to one accent would destroy the distinction the
+   reconstruction exists to make.
+   ================================================================== */
+
+#jrz-root {
+  --ink: #1a1a1a;
+  --ink-2: #000000;
+  --stone: #1a1a1a;
+  --stone-dim: rgba(26, 26, 26, .78);
+  --stone-mute: rgba(26, 26, 26, .55);
+  --gold: #aa0000;
+  --gold-dim: #7a0000;
+  --line: rgba(26, 26, 26, .14);
+  --line-2: rgba(26, 26, 26, .28);
+  --ok: #1f7a34;
+  --maybe: #96650a;
+  --guess: #aa0000;
+  --panel: rgba(250, 250, 250, .94);
+  --sans: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: var(--stone);
+}
+
+/* ------------------------------------------------- masthead clearance */
+
+#jrz-root .jrz-head { top: var(--nm-h) }
+
+/* The shell carries the wordmark and the title. */
+#jrz-root .jrz-title,
+#jrz-root .jrz-navbtn { display: none }
+
+#jrz-root .jrz-headbtns { margin-left: auto }
+
+#jrz-root .jrz-left,
+#jrz-root .jrz-right {
+  top: calc(var(--nm-h) + 60px);
+  max-height: calc(100% - var(--nm-h) - 248px);
+}
+
+@media (max-width: 880px) {
+  /* The app docks both panels to the bottom below 880px; leave that
+     alone and only move the compass clear of the shell. */
+  #jrz-root .jrz-left,
+  #jrz-root .jrz-right { top: auto; max-height: 56% }
+  #jrz-root .jrz-rose { top: calc(var(--nm-h) + 58px) }
+}
+
+/* --------------------------------------------------------- masthead bg */
+
+/* The dark scrim existed to make pale text legible against the sky.
+   With ink-coloured buttons it is the wrong way round, so it goes. */
+#jrz-root .jrz-head { background: none }
+
+/* ------------------------------------------------------------ buttons */
+
+#jrz-root button {
+  color: var(--stone);
+  background: rgba(250, 250, 250, .86);
+}
+#jrz-root button:hover {
+  background: var(--nm-white);
+  border-color: var(--nm-red-line);
+}
+#jrz-root button.jrz-on {
+  background: var(--nm-red-fill);
+  border-color: var(--nm-red-line);
+  color: var(--nm-red);
+}
+
+/* ------------------------------------------------------------- panels */
+
+#jrz-root .jrz-panel { box-shadow: 0 18px 48px rgba(0, 0, 0, .18) }
+#jrz-root .jrz-panel::-webkit-scrollbar-thumb { background: rgba(26, 26, 26, .22) }
+
+/* --------------------------------------------------------- rows, toggles */
+
+#jrz-root .jrz-row:hover .jrz-rowtx { color: var(--nm-black) }
+
+#jrz-root .jrz-sw { background: rgba(26, 26, 26, .12) }
+#jrz-root .jrz-sw::after { background: var(--stone-mute) }
+#jrz-root .jrz-row.jrz-on .jrz-sw {
+  background: var(--nm-red-fill-2);
+  border-color: var(--nm-red-line);
+}
+#jrz-root .jrz-row.jrz-on .jrz-sw::after { background: var(--nm-red) }
+
+/* -------------------------------------------------------------- slider */
+
+#jrz-root input[type=range]::-webkit-slider-thumb {
+  background: var(--nm-red);
+  box-shadow: 0 0 0 3px rgba(170, 0, 0, .16);
+}
+#jrz-root input[type=range]::-moz-range-thumb { background: var(--nm-red) }
+
+/* --------------------------------------------------- confidence chips */
+
+#jrz-root .jrz-chip.c0 { color: var(--ok); border-color: rgba(31, 122, 52, .5) }
+#jrz-root .jrz-chip.c1 { color: var(--maybe); border-color: rgba(150, 101, 10, .5) }
+#jrz-root .jrz-chip.c2 { color: var(--guess); border-color: var(--nm-red-line) }
+
+/* ---------------------------------------------------------- info panel */
+
+#jrz-root .jrz-info h2 { color: var(--nm-black) }
+
+#jrz-root .jrz-verse {
+  color: var(--nm-red);
+  border-color: var(--nm-red-line);
+  background: var(--nm-red-fill);
+}
+
+/* The link out to the Temple Mount app. It is the one primary action
+   in the panel, so it is the one solid red block. */
+#jrz-root .jrz-cta {
+  color: var(--nm-white);
+  background: var(--nm-red);
+  border-color: var(--nm-red);
+}
+#jrz-root .jrz-cta:hover {
+  background: var(--nm-red-deep);
+  border-color: var(--nm-red-deep);
+}
+#jrz-root .jrz-cta i { color: var(--nm-white) }
+#jrz-root .jrz-cta span { color: rgba(255, 255, 255, .72) }
+
+/* ------------------------------------------------------------ timeline */
+
+#jrz-root .jrz-time {
+  background: linear-gradient(to top,
+    rgba(250, 250, 250, .94) 40%,
+    rgba(250, 250, 250, 0));
+}
+#jrz-root .jrz-track::-webkit-scrollbar-thumb { background: rgba(26, 26, 26, .22) }
+#jrz-root .jrz-ev.jrz-on .jrz-evt { color: var(--nm-red) }
+
+/* ---------------------------------------------------------------- pins */
+
+/* Pins float over the model, not over a panel, so they keep a solid
+   paper plate and ink text — the same relationship as before, inverted. */
+#jrz-root .jrz-pin .jrz-pt {
+  color: var(--nm-ink);
+  background: rgba(250, 250, 250, .92);
+  border-color: rgba(26, 26, 26, .34);
+  text-shadow: none;
+}
+#jrz-root .jrz-pin:hover .jrz-pt,
+#jrz-root .jrz-pin.jrz-on .jrz-pt {
+  background: var(--nm-red);
+  color: var(--nm-white);
+  border-color: var(--nm-red);
+}
+#jrz-root .jrz-pin .jrz-ps {
+  background: linear-gradient(to bottom, rgba(26, 26, 26, .7), rgba(26, 26, 26, 0));
+}
+#jrz-root .jrz-pin.jrz-linkpin .jrz-pt {
+  background: var(--nm-red);
+  color: var(--nm-white);
+  border-color: var(--nm-red);
+}
+#jrz-root .jrz-pin.jrz-linkpin:hover .jrz-pt { background: var(--nm-red-deep) }
+#jrz-root .jrz-pin.jrz-linkpin .jrz-ps {
+  background: linear-gradient(to bottom, var(--nm-red), rgba(170, 0, 0, 0));
+}
+
+/* -------------------------------------------------------- compass, HUD */
+
+#jrz-root .jrz-rose { background: rgba(250, 250, 250, .82) }
+#jrz-root .jrz-needle { border-bottom-color: var(--nm-red) }
+#jrz-root .jrz-card.jrz-north b { color: var(--nm-red) }
+
+#jrz-root .jrz-hover {
+  background: rgba(250, 250, 250, .92);
+  color: var(--nm-ink);
+}
+
+#jrz-root .jrz-hint { text-shadow: 0 1px 8px rgba(255, 255, 255, .9) }
+
+/* -------------------------------------------------------------- loader */
+
+#jrz-root .jrz-load { background: var(--nm-paper) }
+#jrz-root .jrz-load h2 { color: var(--nm-black) }
+#jrz-root .jrz-bar { background: var(--line) }
+#jrz-root .jrz-bar i { background: var(--nm-red) }
+
+/* The loader shows the wordmark; it ships pointing at the WordPress
+   upload, and now loads the copy that travels with this folder. */
+#jrz-root .jrz-load img { width: 150px; height: auto }

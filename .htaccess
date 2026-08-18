@@ -1,0 +1,74 @@
+# ==================================================================
+#  Nepsis Ministries Holy Land map  -  Apache config for the map folder
+#
+#  Only relevant when the map is served from Apache (most self-hosted
+#  WordPress: cPanel, SiteGround, Bluehost, Hostinger, DreamHost...).
+#  Harmless everywhere else - GitHub Pages, Netlify and Nginx simply
+#  ignore this file.
+#
+#  It lives alongside index.html, i.e. public_html/nepsis-map/.htaccess
+# ==================================================================
+
+DirectoryIndex index.html
+
+# ------------------------------------------------------------------
+# Do not let WordPress's rewrite rules swallow requests for this folder.
+# WP's root .htaccess already skips real files and directories, but some
+# hosts, security plugins and page builders add broader rules.
+# ------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteRule ^ - [L]
+</IfModule>
+
+# ------------------------------------------------------------------
+# Allow your own WordPress pages to embed the map in an <iframe>, while
+# still blocking every other site. If the embed shows as a blank dark
+# box, a security plugin is sending X-Frame-Options: DENY site-wide and
+# THIS is the line that overrides it for the map folder.
+# ------------------------------------------------------------------
+<IfModule mod_headers.c>
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "no-referrer-when-downgrade"
+  Header always set X-Content-Type-Options "nosniff"
+</IfModule>
+
+# ------------------------------------------------------------------
+# Correct MIME types. Some shared hosts still serve .json as
+# text/plain and .mjs as nothing at all.
+# ------------------------------------------------------------------
+<IfModule mod_mime.c>
+  AddType application/javascript  .js
+  AddType application/json        .json
+  AddType text/css                .css
+  AddType image/svg+xml           .svg
+  AddType font/woff2              .woff2
+</IfModule>
+
+# ------------------------------------------------------------------
+# Compression. The dataset is ~165 KB of JS/JSON and gzips to roughly
+# a quarter of that.
+# ------------------------------------------------------------------
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain \
+    application/javascript application/json image/svg+xml
+</IfModule>
+
+# ------------------------------------------------------------------
+# Caching. index.html stays fresh so edits appear immediately; the
+# assets are safe to cache for a week. If you change site data, either
+# wait out the week or rename data/data.js in index.html.
+# ------------------------------------------------------------------
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html        "access plus 0 seconds"
+  ExpiresByType text/css         "access plus 7 days"
+  ExpiresByType application/javascript "access plus 7 days"
+  ExpiresByType application/json "access plus 7 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>

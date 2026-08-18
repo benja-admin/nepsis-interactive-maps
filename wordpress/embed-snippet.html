@@ -1,0 +1,77 @@
+<!--
+  Nepsis Ministries Holy Land map - WordPress embed snippet
+  =====================================
+  Paste this whole block into a Gutenberg "Custom HTML" block
+  (Add block  →  search "Custom HTML"), or into a Classic Editor
+  "Text" tab. Do NOT paste it into the Visual tab - WordPress will
+  mangle the tags.
+
+  ONE THING TO EDIT: replace the src path below if you uploaded the
+  folder somewhere other than /nepsis-map/.
+-->
+
+<div class="hl3d-embed">
+  <iframe
+    src="/nepsis-map/index.html?embed=1"
+    title="Nepsis Ministries - interactive 3D map of the Holy Land"
+    loading="lazy"
+    allowfullscreen
+    allow="fullscreen"
+    referrerpolicy="no-referrer-when-downgrade"></iframe>
+</div>
+
+<p class="hl3d-caption">
+  Drag to pan · <strong>Ctrl</strong> (or <strong>⌘</strong>) + scroll to zoom ·
+  right-drag to tilt and rotate. Use the timeline at the bottom to filter by
+  biblical era, and click any marker for its scripture references.
+  <a href="/nepsis-map/" target="_blank" rel="noopener">Open the full-screen map ↗</a>
+</p>
+
+<style>
+/* ------------------------------------------------------------------
+   Scoped to .hl3d-embed so nothing here can affect the rest of your
+   theme. Safe to tweak the two heights below.
+   ------------------------------------------------------------------ */
+.hl3d-embed{
+  position: relative;
+  width: 100%;
+  height: 78vh;          /* tall enough that the 3D actually reads */
+  min-height: 480px;
+  max-height: 900px;
+  margin: 0 0 .75rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #0b1017;   /* matches the map while it loads */
+  box-shadow: 0 6px 28px rgba(0,0,0,.22);
+}
+.hl3d-embed iframe{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+.hl3d-caption{
+  font-size: .85rem;
+  opacity: .75;
+  line-height: 1.5;
+  margin-top: 0;
+}
+
+/* Phones: a shorter box, and the map's own mobile layout takes over. */
+@media (max-width: 782px){
+  .hl3d-embed{ height: 70vh; min-height: 420px; border-radius: 8px; }
+}
+
+/* If your theme constrains content width, uncomment this to let the
+   map break out to the full window width - it makes a real difference.
+.hl3d-embed{
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  border-radius: 0;
+}
+*/
+</style>

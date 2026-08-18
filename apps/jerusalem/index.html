@@ -1,0 +1,2768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Jerusalem, c. 30 AD — Interactive Reconstruction</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6BB7ENGW9V"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-6BB7ENGW9V');
+</script>
+<style>
+/* ============================================================
+   All styles scoped under #jrz-root so this file can be pasted
+   into an existing page (or dropped in as an <iframe>) safely.
+   ============================================================ */
+#jrz-root, #jrz-root *, #jrz-root *::before, #jrz-root *::after { box-sizing: border-box; }
+#jrz-root {
+  --ink:        #10100e;
+  --ink-2:      #1a1915;
+  --stone:      #e8dfc9;
+  --stone-dim:  #b6ac95;
+  --stone-mute: #8a8271;
+  --gold:       #d9a441;
+  --gold-dim:   #8a6a29;
+  --line:       rgba(232,223,201,0.14);
+  --line-2:     rgba(232,223,201,0.28);
+  --ok:         #6ec07a;
+  --maybe:      #e0b23f;
+  --guess:      #e06a5e;
+  --panel:      rgba(16,16,14,0.90);
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+  --sans: ui-sans-serif, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", "Roboto Mono", Menlo, Consolas, monospace;
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  margin: 0;
+  overflow: hidden;
+  background: #6f7f8c;
+  color: var(--stone);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* When the file is used standalone, fill the viewport. */
+html.jrz-standalone, html.jrz-standalone body { height: 100%; margin: 0; padding: 0; background: #0b0b0a; }
+html.jrz-standalone #jrz-root { height: 100vh; height: 100dvh; }
+
+#jrz-root .jrz-sky { position: absolute; inset: 0; z-index: 0; transition: background 600ms linear; }
+#jrz-root canvas.jrz-gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; z-index: 1; touch-action: none; cursor: grab; }
+#jrz-root canvas.jrz-gl.jrz-drag { cursor: grabbing; }
+#jrz-root .jrz-vig {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 42%, rgba(0,0,0,0) 42%, rgba(12,10,6,0.34) 100%),
+    linear-gradient(to bottom, rgba(12,10,6,0.22) 0%, rgba(0,0,0,0) 22%);
+}
+
+/* ---------- masthead ---------- */
+#jrz-root .jrz-head {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 6;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+  padding: 14px 16px 26px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(10,9,7,0.62), rgba(10,9,7,0));
+}
+#jrz-root .jrz-title { pointer-events: none; display: flex; align-items: center; gap: 12px; }
+#jrz-root .jrz-logo {
+  flex: 0 0 auto; display: block; width: auto;
+  height: clamp(32px, 4.4vw, 46px);
+  filter: drop-shadow(0 2px 9px rgba(0,0,0,0.55));
+}
+#jrz-root .jrz-navbtn {
+  font: inherit; font-size: 11.5px; color: var(--stone); background: rgba(20,19,16,0.78);
+  border: 1px solid var(--line-2); border-radius: 2px; padding: 6px 9px;
+  letter-spacing: 0.04em; text-decoration: none; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+  transition: background 140ms, border-color 140ms, color 140ms;
+}
+#jrz-root .jrz-navbtn:hover { background: rgba(46,42,32,0.9); border-color: rgba(217,164,65,0.55); color: #f6e6bf; }
+#jrz-root .jrz-navbtn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+#jrz-root .jrz-navbtn i { font-style: normal; color: var(--gold); }
+#jrz-root .jrz-title h1 {
+  margin: 0; font-family: var(--serif); font-weight: 400;
+  font-size: clamp(17px, 2.4vw, 25px); letter-spacing: 0.045em; color: #f2e9d4;
+  text-shadow: 0 2px 14px rgba(0,0,0,0.6);
+}
+#jrz-root .jrz-title p {
+  margin: 3px 0 0; font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--stone-mute);
+}
+#jrz-root .jrz-headbtns { display: flex; gap: 7px; pointer-events: auto; flex-wrap: wrap; justify-content: flex-end; }
+
+/* ---------- buttons ---------- */
+#jrz-root button {
+  font: inherit; color: var(--stone); background: rgba(20,19,16,0.78);
+  border: 1px solid var(--line-2); border-radius: 2px; padding: 7px 11px;
+  cursor: pointer; letter-spacing: 0.04em; transition: background 140ms, border-color 140ms, color 140ms;
+  backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+}
+#jrz-root button:hover { background: rgba(46,42,32,0.9); border-color: rgba(217,164,65,0.55); }
+#jrz-root button:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+#jrz-root button.jrz-on { background: rgba(217,164,65,0.16); border-color: rgba(217,164,65,0.7); color: #f6e6bf; }
+#jrz-root .jrz-btn-sm { font-size: 11.5px; padding: 6px 9px; }
+
+/* ---------- panels ---------- */
+#jrz-root .jrz-panel {
+  position: absolute; z-index: 7; background: var(--panel);
+  border: 1px solid var(--line); border-radius: 3px;
+  backdrop-filter: blur(11px); -webkit-backdrop-filter: blur(11px);
+  box-shadow: 0 18px 48px rgba(0,0,0,0.45);
+  overflow: hidden auto; overscroll-behavior: contain;
+}
+#jrz-root .jrz-left  { left: 16px; top: 74px; width: 244px; max-height: calc(100% - 262px); }
+#jrz-root .jrz-right { right: 16px; top: 74px; width: 320px; max-height: calc(100% - 262px); }
+#jrz-root .jrz-panel::-webkit-scrollbar { width: 7px; }
+#jrz-root .jrz-panel::-webkit-scrollbar-thumb { background: rgba(232,223,201,0.2); border-radius: 4px; }
+#jrz-root .jrz-sec { padding: 12px 13px; border-bottom: 1px solid var(--line); }
+#jrz-root .jrz-sec:last-child { border-bottom: 0; }
+#jrz-root .jrz-lbl {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--stone-mute); margin: 0 0 9px;
+}
+#jrz-root .jrz-row { display: flex; align-items: center; gap: 9px; padding: 4px 0; cursor: pointer; }
+#jrz-root .jrz-row:hover .jrz-rowtx { color: #f6ecd6; }
+#jrz-root .jrz-rowtx { font-size: 12.5px; color: var(--stone-dim); transition: color 120ms; }
+#jrz-root .jrz-sw {
+  flex: 0 0 26px; height: 15px; border-radius: 9px; background: rgba(232,223,201,0.13);
+  border: 1px solid var(--line-2); position: relative; transition: background 150ms, border-color 150ms;
+}
+#jrz-root .jrz-sw::after {
+  content: ""; position: absolute; top: 1px; left: 1px; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--stone-mute); transition: transform 150ms, background 150ms;
+}
+#jrz-root .jrz-row.jrz-on .jrz-sw { background: rgba(217,164,65,0.32); border-color: rgba(217,164,65,0.7); }
+#jrz-root .jrz-row.jrz-on .jrz-sw::after { transform: translateX(11px); background: var(--gold); }
+#jrz-root .jrz-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+#jrz-root .jrz-grid button { width: 100%; text-align: left; font-size: 11.5px; padding: 7px 8px; }
+
+#jrz-root input[type=range] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 20px; background: transparent; cursor: pointer; margin: 0;
+}
+#jrz-root input[type=range]::-webkit-slider-runnable-track { height: 2px; background: var(--line-2); }
+#jrz-root input[type=range]::-moz-range-track { height: 2px; background: var(--line-2); }
+#jrz-root input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: var(--gold);
+  margin-top: -5.5px; border: 0; box-shadow: 0 0 0 3px rgba(217,164,65,0.2);
+}
+#jrz-root input[type=range]::-moz-range-thumb { width: 13px; height: 13px; border: 0; border-radius: 50%; background: var(--gold); }
+#jrz-root .jrz-slidelab { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; color: var(--stone-mute); }
+
+/* ---------- confidence keys ---------- */
+#jrz-root .jrz-key { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 11.5px; color: var(--stone-dim); }
+#jrz-root .jrz-dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+#jrz-root .jrz-d0 { background: var(--ok); } #jrz-root .jrz-d1 { background: var(--maybe); } #jrz-root .jrz-d2 { background: var(--guess); }
+
+/* ---------- info panel ---------- */
+#jrz-root .jrz-info h2 {
+  margin: 0 0 2px; font-family: var(--serif); font-weight: 400; font-size: 20px; letter-spacing: 0.02em; color: #f4ecd8;
+}
+#jrz-root .jrz-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 11px; }
+#jrz-root .jrz-chip {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.13em; text-transform: uppercase;
+  padding: 3px 7px; border: 1px solid var(--line-2); border-radius: 2px; color: var(--stone-dim);
+}
+#jrz-root .jrz-chip.c0 { color: var(--ok); border-color: rgba(110,192,122,0.45); }
+#jrz-root .jrz-chip.c1 { color: var(--maybe); border-color: rgba(224,178,63,0.45); }
+#jrz-root .jrz-chip.c2 { color: var(--guess); border-color: rgba(224,106,94,0.45); }
+#jrz-root .jrz-info p { margin: 0 0 10px; font-size: 13px; color: var(--stone-dim); }
+#jrz-root .jrz-facts { margin: 0 0 11px; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+#jrz-root .jrz-facts li { display: flex; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
+#jrz-root .jrz-facts b { flex: 0 0 84px; font-weight: 400; font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--stone-mute); padding-top: 2px; }
+#jrz-root .jrz-facts span { color: var(--stone-dim); }
+#jrz-root .jrz-scrip { display: flex; flex-wrap: wrap; gap: 5px; }
+#jrz-root .jrz-verse {
+  font-family: var(--serif); font-size: 12px; font-style: italic; color: var(--gold);
+  border: 1px solid rgba(217,164,65,0.3); border-radius: 2px; padding: 3px 8px; background: rgba(217,164,65,0.07);
+}
+#jrz-root .jrz-empty { font-size: 12.5px; color: var(--stone-mute); font-style: italic; }
+
+#jrz-root .jrz-cta {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  width: 100%; margin-top: 4px; text-decoration: none;
+  font-family: var(--sans); font-size: 12.5px; line-height: 1.35; text-align: left;
+  color: #f6e6bf; background: rgba(217,164,65,0.13);
+  border: 1px solid rgba(217,164,65,0.55); border-radius: 2px; padding: 9px 11px;
+  transition: background 140ms, border-color 140ms;
+}
+#jrz-root .jrz-cta:hover { background: rgba(217,164,65,0.26); border-color: var(--gold); }
+#jrz-root .jrz-cta b { font-weight: 400; }
+#jrz-root .jrz-cta i { font-style: normal; color: var(--gold); font-size: 15px; flex: 0 0 auto; }
+#jrz-root .jrz-cta span {
+  display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--stone-mute); margin-top: 2px;
+}
+#jrz-root .jrz-pin.jrz-linkpin .jrz-pt {
+  background: rgba(217,164,65,0.92); color: #14120c; border-color: var(--gold); font-weight: 600;
+}
+#jrz-root .jrz-pin.jrz-linkpin:hover .jrz-pt { background: #f0d493; }
+#jrz-root .jrz-pin.jrz-linkpin .jrz-ps { background: linear-gradient(to bottom, var(--gold), rgba(217,164,65,0)); }
+
+/* ---------- timeline ---------- */
+#jrz-root .jrz-time {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 7;
+  padding: 26px 16px 13px;
+  background: linear-gradient(to top, rgba(10,9,7,0.86) 40%, rgba(10,9,7,0));
+  pointer-events: none;
+}
+#jrz-root .jrz-timeinner { pointer-events: auto; }
+#jrz-root .jrz-timehead { display: flex; align-items: baseline; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+#jrz-root .jrz-timehead .jrz-lbl { margin: 0; }
+#jrz-root .jrz-track { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+#jrz-root .jrz-track::-webkit-scrollbar { height: 5px; }
+#jrz-root .jrz-track::-webkit-scrollbar-thumb { background: rgba(232,223,201,0.2); border-radius: 4px; }
+#jrz-root .jrz-ev {
+  flex: 0 0 auto; text-align: left; min-width: 128px; max-width: 168px; padding: 7px 10px; line-height: 1.35;
+}
+#jrz-root .jrz-ev .jrz-evn { display: block; font-family: var(--mono); font-size: 9px; letter-spacing: 0.16em; color: var(--stone-mute); }
+#jrz-root .jrz-ev .jrz-evt { display: block; font-size: 12px; color: var(--stone-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#jrz-root .jrz-ev.jrz-on .jrz-evt { color: #f6e6bf; }
+
+/* ---------- 3D pins ---------- */
+#jrz-root .jrz-pins { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+#jrz-root .jrz-pin {
+  position: absolute; transform: translate(-50%, -100%); pointer-events: auto; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 0; will-change: transform, opacity;
+}
+#jrz-root .jrz-pin .jrz-pt {
+  font-family: var(--serif); font-size: 12px; letter-spacing: 0.03em; color: #f6ecd6; white-space: nowrap;
+  background: rgba(14,13,10,0.8); border: 1px solid rgba(217,164,65,0.4); border-radius: 2px; padding: 2px 8px;
+  text-shadow: 0 1px 6px rgba(0,0,0,0.9); transition: background 140ms, border-color 140ms;
+}
+#jrz-root .jrz-pin:hover .jrz-pt { background: rgba(217,164,65,0.9); color: #14120c; border-color: var(--gold); }
+#jrz-root .jrz-pin.jrz-on .jrz-pt { background: rgba(217,164,65,0.92); color: #14120c; }
+#jrz-root .jrz-pin .jrz-ps { width: 1px; height: 16px; background: linear-gradient(to bottom, rgba(217,164,65,0.85), rgba(217,164,65,0)); }
+
+/* ---------- compass ---------- */
+#jrz-root .jrz-rose {
+  position: absolute; right: 16px; bottom: 126px; z-index: 5;
+  width: 54px; height: 54px; pointer-events: none; border-radius: 50%;
+  border: 1px solid var(--line-2); background: rgba(14,13,10,0.60);
+  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+}
+#jrz-root .jrz-dial { position: absolute; inset: 0; transform: rotate(var(--rot, 0deg)); }
+#jrz-root .jrz-needle {
+  position: absolute; left: 50%; top: 11px; width: 0; height: 0; margin-left: -3.5px;
+  border-left: 3.5px solid transparent; border-right: 3.5px solid transparent;
+  border-bottom: 16px solid var(--gold);
+}
+#jrz-root .jrz-card { position: absolute; inset: 0; transform: rotate(var(--a, 0deg)); }
+#jrz-root .jrz-card b {
+  position: absolute; left: 50%; top: 1px;
+  transform: translateX(-50%) rotate(calc(0deg - var(--rot, 0deg) - var(--a, 0deg)));
+  font-family: var(--mono); font-weight: 400; font-size: 8.5px; letter-spacing: 0.06em; color: var(--stone-mute);
+}
+#jrz-root .jrz-card.jrz-north b { color: var(--gold); }
+
+/* ---------- hover readout + loader ---------- */
+#jrz-root .jrz-hover {
+  position: absolute; z-index: 5; pointer-events: none; transform: translate(14px, 14px);
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  background: rgba(14,13,10,0.86); border: 1px solid var(--line-2); padding: 4px 8px; border-radius: 2px;
+  color: #f2e6c8; opacity: 0; transition: opacity 110ms;
+}
+#jrz-root .jrz-load {
+  position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px; background: #100f0d; transition: opacity 550ms; text-align: center; padding: 20px;
+}
+#jrz-root .jrz-load h2 { font-family: var(--serif); font-weight: 400; font-size: 21px; letter-spacing: 0.09em; margin: 0; color: #efe4c8; }
+#jrz-root .jrz-load p  { font-family: var(--mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--stone-mute); margin: 0; }
+#jrz-root .jrz-bar { width: 190px; height: 2px; background: rgba(232,223,201,0.16); overflow: hidden; }
+#jrz-root .jrz-bar i { display: block; height: 100%; width: 30%; background: var(--gold); animation: jrz-sl 1.15s ease-in-out infinite; }
+@keyframes jrz-sl { 0% { transform: translateX(-110%); } 100% { transform: translateX(440%); } }
+#jrz-root .jrz-hint {
+  position: absolute; left: 16px; bottom: 128px; z-index: 5; pointer-events: none;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--stone-mute); text-shadow: 0 1px 8px #000; transition: opacity 700ms;
+}
+
+/* ---------- mobile ---------- */
+#jrz-root .jrz-close { display: none; }
+@media (max-width: 880px) {
+  #jrz-root .jrz-rose { top: 112px; bottom: auto; right: 12px; }
+  #jrz-root .jrz-panel { top: auto; bottom: 0; left: 0; right: 0; width: auto; max-height: 56%; border-radius: 12px 12px 0 0; border-bottom: 0; }
+  #jrz-root .jrz-panel.jrz-hide { display: none; }
+  #jrz-root .jrz-time { padding-bottom: 10px; }
+  #jrz-root .jrz-hint { display: none; }
+  #jrz-root .jrz-close { display: block; position: sticky; top: 0; float: right; margin: 8px 8px 0; z-index: 2; }
+  #jrz-root .jrz-left, #jrz-root .jrz-right { z-index: 9; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #jrz-root .jrz-bar i { animation: none; width: 100%; }
+}
+</style>
+
+<!-- Nepsis Ministries shared shell. These come AFTER the app's own
+     styles above, so the theme layer wins on equal specificity. -->
+<link rel="stylesheet" href="../../shared/nepsis.css">
+<link rel="stylesheet" href="../../shared/theme-jerusalem.css">
+<link rel="icon" type="image/png" href="../../shared/nepsis-mark.png">
+<script>window.NEPSIS_APP = { id: 'jerusalem', base: '../../' };</script>
+<script defer src="../../shared/nepsis-shell.js"></script>
+</head>
+<body>
+<div id="jrz-root">
+  <div class="jrz-sky" id="jrzSky"></div>
+  <canvas class="jrz-gl" id="jrzCanvas"></canvas>
+  <div class="jrz-vig"></div>
+  <div class="jrz-pins" id="jrzPins"></div>
+  <div class="jrz-hover" id="jrzHover"></div>
+
+  <header class="jrz-head">
+    <div class="jrz-headbtns">
+      <button class="jrz-btn-sm jrz-on" id="jrzBtnLeft">Map controls</button>
+      <button class="jrz-btn-sm" id="jrzBtnTour">Walk the week</button>
+      <button class="jrz-btn-sm" id="jrzBtnReset">Reset view</button>
+    </div>
+  </header>
+
+  <aside class="jrz-panel jrz-left" id="jrzLeft">
+    <button class="jrz-close jrz-btn-sm" data-close="jrzLeft">Close</button>
+    <div class="jrz-sec">
+      <p class="jrz-lbl">Go to</p>
+      <div class="jrz-grid" id="jrzViews"></div>
+    </div>
+    <div class="jrz-sec">
+      <p class="jrz-lbl">Show</p>
+      <div id="jrzLayers"></div>
+    </div>
+    <div class="jrz-sec">
+      <p class="jrz-lbl">How certain is this?</p>
+      <div class="jrz-key"><i class="jrz-dot jrz-d0"></i> Excavated or measured</div>
+      <div class="jrz-key"><i class="jrz-dot jrz-d1"></i> Probable &mdash; texts + partial finds</div>
+      <div class="jrz-key"><i class="jrz-dot jrz-d2"></i> Disputed &mdash; drawn from argument</div>
+      <div class="jrz-row" id="jrzConf" style="margin-top:8px"><i class="jrz-sw"></i><span class="jrz-rowtx">Colour the city by certainty</span></div>
+    </div>
+    <div class="jrz-sec">
+      <p class="jrz-lbl">Hour of the day</p>
+      <input type="range" id="jrzSun" min="0" max="1000" value="330">
+      <div class="jrz-slidelab"><span id="jrzSunTx">8:00</span><span>sunrise &rarr; sunset</span></div>
+    </div>
+    <div class="jrz-sec">
+      <p class="jrz-lbl">Labels</p>
+      <div class="jrz-row jrz-on" id="jrzPinsTog"><i class="jrz-sw"></i><span class="jrz-rowtx">Gospel site markers</span></div>
+    </div>
+  </aside>
+
+  <aside class="jrz-panel jrz-right jrz-info" id="jrzRight">
+    <button class="jrz-close jrz-btn-sm" data-close="jrzRight">Close</button>
+    <div class="jrz-sec" id="jrzInfo"></div>
+  </aside>
+
+  <div class="jrz-time">
+    <div class="jrz-timeinner">
+      <div class="jrz-timehead">
+        <p class="jrz-lbl">Passover week &mdash; tap a moment to fly there</p>
+      </div>
+      <div class="jrz-track" id="jrzTrack"></div>
+    </div>
+  </div>
+
+  <div class="jrz-rose" id="jrzRose" aria-hidden="true">
+    <div class="jrz-dial">
+      <i class="jrz-needle"></i>
+      <span class="jrz-card jrz-north" style="--a:0deg"><b>N</b></span>
+      <span class="jrz-card" style="--a:90deg"><b>E</b></span>
+      <span class="jrz-card" style="--a:180deg"><b>S</b></span>
+      <span class="jrz-card" style="--a:270deg"><b>W</b></span>
+    </div>
+  </div>
+
+  <p class="jrz-hint" id="jrzHint">Drag to orbit &middot; scroll to zoom &middot; right-drag to pan &middot; click a building</p>
+
+  <div class="jrz-load" id="jrzLoad">
+    <h2>Building the city</h2>
+    <div class="jrz-bar"><i></i></div>
+    <p id="jrzLoadTx">Carving the valleys</p>
+  </div>
+</div>
+
+<script>
+(function () {
+"use strict";
+
+var ROOT   = document.getElementById("jrz-root");
+// Standalone by default. Add data-jrz-embed to the root div when pasting
+// this block into a page that already controls its own layout.
+if (ROOT && !ROOT.hasAttribute("data-jrz-embed")) {
+  document.documentElement.classList.add("jrz-standalone");
+}
+var CANVAS = document.getElementById("jrzCanvas");
+var LOAD   = document.getElementById("jrzLoad");
+var ROSE   = document.getElementById("jrzRose");
+var LOADTX = document.getElementById("jrzLoadTx");
+
+/* ============================================================
+   1. MATH
+   ============================================================ */
+function m4() { return new Float32Array(16); }
+function m4ident(o) { o[0]=1;o[1]=0;o[2]=0;o[3]=0;o[4]=0;o[5]=1;o[6]=0;o[7]=0;o[8]=0;o[9]=0;o[10]=1;o[11]=0;o[12]=0;o[13]=0;o[14]=0;o[15]=1; return o; }
+function m4persp(o, fovy, asp, near, far) {
+  var f = 1 / Math.tan(fovy / 2), nf = 1 / (near - far);
+  o[0]=f/asp; o[1]=0; o[2]=0; o[3]=0;
+  o[4]=0; o[5]=f; o[6]=0; o[7]=0;
+  o[8]=0; o[9]=0; o[10]=(far+near)*nf; o[11]=-1;
+  o[12]=0; o[13]=0; o[14]=2*far*near*nf; o[15]=0;
+  return o;
+}
+function m4look(o, eye, tgt, up) {
+  var zx=eye[0]-tgt[0], zy=eye[1]-tgt[1], zz=eye[2]-tgt[2];
+  var l = Math.hypot(zx,zy,zz) || 1; zx/=l; zy/=l; zz/=l;
+  var xx=up[1]*zz-up[2]*zy, xy=up[2]*zx-up[0]*zz, xz=up[0]*zy-up[1]*zx;
+  l = Math.hypot(xx,xy,xz) || 1; xx/=l; xy/=l; xz/=l;
+  var yx=zy*xz-zz*xy, yy=zz*xx-zx*xz, yz=zx*xy-zy*xx;
+  o[0]=xx; o[1]=yx; o[2]=zx; o[3]=0;
+  o[4]=xy; o[5]=yy; o[6]=zy; o[7]=0;
+  o[8]=xz; o[9]=yz; o[10]=zz; o[11]=0;
+  o[12]=-(xx*eye[0]+xy*eye[1]+xz*eye[2]);
+  o[13]=-(yx*eye[0]+yy*eye[1]+yz*eye[2]);
+  o[14]=-(zx*eye[0]+zy*eye[1]+zz*eye[2]);
+  o[15]=1;
+  return o;
+}
+function m4mul(o, a, b) {
+  for (var c = 0; c < 4; c++) {
+    var b0=b[c*4], b1=b[c*4+1], b2=b[c*4+2], b3=b[c*4+3];
+    o[c*4  ] = a[0]*b0 + a[4]*b1 + a[8]*b2  + a[12]*b3;
+    o[c*4+1] = a[1]*b0 + a[5]*b1 + a[9]*b2  + a[13]*b3;
+    o[c*4+2] = a[2]*b0 + a[6]*b1 + a[10]*b2 + a[14]*b3;
+    o[c*4+3] = a[3]*b0 + a[7]*b1 + a[11]*b2 + a[15]*b3;
+  }
+  return o;
+}
+function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function mulberry(seed) {
+  var s = seed >>> 0;
+  return function () {
+    s = (s + 0x6D2B79F5) >>> 0;
+    var t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/* ============================================================
+   2. TERRAIN  (origin = centre of the Herodian Temple platform,
+      +X east, +Z north, Y = metres above sea level)
+      Heights are interpolated from surveyed landmark elevations.
+   ============================================================ */
+var X0 = -1100, X1 = 1400, Z0 = -1500, Z1 = 750, CELL = 10;
+var NX = Math.round((X1 - X0) / CELL) + 1;
+var NZ = Math.round((Z1 - Z0) / CELL) + 1;
+var HGT = new Float32Array(NX * NZ);
+
+var CP = [
+  // Temple Mount rock & its immediate skirts
+  [0,0,738],[0,240,742],[0,-240,724],[-150,110,730],[150,110,726],[150,-150,716],
+  [-200,120,716],[-210,0,712],[-215,-120,706],[-40,-300,712],[60,-300,704],
+  // Tyropoeon (Central) Valley, running NNW to SSE through the city
+  [-520,400,750],[-440,330,744],[-370,240,738],[-305,150,728],[-250,60,718],
+  [-205,0,710],[-190,-150,698],[-160,-300,684],
+  [-120,-450,668],[-80,-600,650],[-45,-740,638],[-30,-830,636],
+  // City of David ridge, east of the Tyropoeon
+  [-30,-260,706],[-20,-380,696],[-10,-500,678],[-15,-620,662],[-22,-720,648],[-28,-800,640],
+  // Kidron Valley, east
+  [220,0,700],[285,0,666],[345,0,644],[410,0,652],[335,200,652],[330,-200,638],
+  [300,-400,626],[250,-600,616],[150,-800,608],[60,-900,604],[305,400,672],[285,560,692],
+  // Mount of Olives ridge
+  [500,100,690],[600,120,732],[700,120,772],[820,110,802],[970,101,818],[1090,100,806],
+  [1220,100,782],[900,-200,806],[900,300,812],[850,500,798],[960,-400,778],[620,-220,702],
+  [720,-360,734],[620,400,722],[740,620,762],[930,700,792],[375,192,690],[430,300,700],
+  [440,-110,678],[1150,600,798],[1290,300,762],[1340,-260,720],[1340,-700,690],
+  // Bezetha / the northern ground outside the walls
+  [-50,350,748],[-110,500,758],[-260,560,760],[-410,610,752],[10,500,748],[160,450,728],
+  [110,660,740],[-534,406,750],[-140,410,752],
+  // the shoulders either side of the valley's head
+  [-630,300,758],[-700,250,762],[-230,258,748],[-180,340,750],[-186,150,734],
+  // The quarry-garden west of the city (Golgotha)
+  [-566,79,754],[-625,150,752],[-500,50,749],[-660,60,748],[-600,-20,750],
+  // Upper City / Western Hill
+  [-741,-139,773],[-700,-50,772],[-790,-150,769],[-650,-200,770],[-600,-300,769],
+  [-616,-664,765],[-710,-500,760],[-550,-450,762],[-500,-250,764],[-400,-150,756],
+  [-350,-50,743],[-450,0,758],[-560,110,764],[-670,160,760],[-449,-609,720],
+  [-380,-700,690],[-300,-760,666],[-250,-560,690],
+  // Hinnom Valley, wrapping the west and south
+  [-931,-404,736],[-960,-200,746],[-985,0,752],[-910,-560,700],[-810,-700,672],
+  [-660,-810,648],[-505,-880,630],[-350,-915,620],[-200,-940,612],[-95,-955,606],
+  // outer ridges / horizon
+  [-1060,-300,762],[-1085,0,766],[-1060,-620,732],[-1010,200,760],[-820,220,762],
+  [-920,420,766],[-620,520,752],[-1010,520,762],[-1090,-950,700],[1390,-950,690],
+  // the ground south of the city: the Kidron runs on as the Wadi en-Nar, while the
+  // ridges either side climb again toward Bethlehem
+  [150,-1050,588],[300,-1200,566],[470,-1350,548],[640,-1470,534],
+  [-250,-1090,676],[-500,-1080,706],[-620,-1180,760],[-780,-1130,742],[-1000,-1150,750],
+  [-120,-1150,660],[-380,-1260,724],[-700,-1300,756],[-950,-1330,758],
+  [700,-1120,668],[1000,-1200,678],[1250,-1300,684],[900,-1400,676],
+  [-1090,-1480,762],[-620,-1480,764],[-180,-1480,706],[180,-1480,640],[1100,-1480,690],[1390,-1480,688],
+  [1390,700,772],[-1090,700,756],[10,745,744],[620,-960,628],[-560,-960,616]
+];
+
+function buildTerrain() {
+  var i, j, k, x, z, d2, w, num, den, cp;
+  var n = CP.length;
+  var cx = new Float32Array(n), cz = new Float32Array(n), ch = new Float32Array(n);
+  for (k = 0; k < n; k++) { cp = CP[k]; cx[k] = cp[0]; cz[k] = cp[1]; ch[k] = cp[2]; }
+  for (j = 0; j < NZ; j++) {
+    z = Z0 + j * CELL;
+    for (i = 0; i < NX; i++) {
+      x = X0 + i * CELL;
+      num = 0; den = 0;
+      for (k = 0; k < n; k++) {
+        d2 = (x - cx[k]) * (x - cx[k]) + (z - cz[k]) * (z - cz[k]) + 240;
+        w = 1 / (d2 * d2 * Math.sqrt(d2));      // inverse distance, power 5
+        num += w * ch[k]; den += w;
+      }
+      HGT[j * NX + i] = num / den;
+    }
+  }
+  // gentle smoothing to erase interpolation bullseyes
+  var tmp = new Float32Array(HGT.length);
+  for (var pass = 0; pass < 2; pass++) {
+    for (j = 0; j < NZ; j++) for (i = 0; i < NX; i++) {
+      var s = 0, c = 0;
+      for (var dj = -1; dj <= 1; dj++) for (var di = -1; di <= 1; di++) {
+        var ii = i + di, jj = j + dj;
+        if (ii < 0 || jj < 0 || ii >= NX || jj >= NZ) continue;
+        s += HGT[jj * NX + ii]; c++;
+      }
+      tmp[j * NX + i] = s / c;
+    }
+    HGT.set(tmp);
+  }
+  // keep the natural rock from poking through the built platform
+  for (j = 0; j < NZ; j++) for (i = 0; i < NX; i++) {
+    x = X0 + i * CELL; z = Z0 + j * CELL;
+    if (x > -190 && x < 195 && z > -280 && z < 285) {
+      var t = Math.min(1, Math.min(Math.min(x + 190, 195 - x), Math.min(z + 280, 285 - z)) / 45);
+      HGT[j * NX + i] = lerp(HGT[j * NX + i], Math.min(HGT[j * NX + i], 726), t);
+    }
+  }
+  // level the terraces that carry colonnades, then sink the basins
+  for (var fi = 0; fi < FLATS.length; fi++) {
+    var F = FLATS[fi];
+    flattenTerrain(F[0], F[1], F[2], F[3], F[4], 18);
+  }
+  // raise the rounded rises
+  for (var mi = 0; mi < MOUNDS.length; mi++) {
+    var Mo = MOUNDS[mi];
+    moundTerrain(Mo[0], Mo[1], Mo[2], Mo[3]);
+  }
+  // sink the rock-cut pools so their basins are visible
+  for (var ci = 0; ci < CUTS.length; ci++) {
+    var C = CUTS[ci];
+    cutTerrain(C[0], C[1], C[2], C[3], C[4], 3);   // the stone rim covers this edge
+  }
+}
+
+// x0,z0,x1,z1,level — engineered terraces
+var FLATS = [
+  [-10, 330, 156, 500, 741.0]    // the Bethesda precinct and its porticoes
+];
+function flattenTerrain(x0, z0, x1, z1, level, f) {
+  var i0 = Math.max(0, Math.floor((x0 - f - X0) / CELL)), i1 = Math.min(NX - 1, Math.ceil((x1 + f - X0) / CELL));
+  var j0 = Math.max(0, Math.floor((z0 - f - Z0) / CELL)), j1 = Math.min(NZ - 1, Math.ceil((z1 + f - Z0) / CELL));
+  for (var j = j0; j <= j1; j++) {
+    var z = Z0 + j * CELL;
+    for (var i = i0; i <= i1; i++) {
+      var x = X0 + i * CELL;
+      var dx = Math.max(x0 - x, 0, x - x1), dz = Math.max(z0 - z, 0, z - z1);
+      var d = Math.hypot(dx, dz);
+      if (d > f) continue;
+      var t = 1 - d / f; t = t * t * (3 - 2 * t);
+      var k = j * NX + i;
+      HGT[k] = lerp(HGT[k], level, t);
+    }
+  }
+}
+
+// cx,cz,radius,height — smooth rounded rises
+var MOUNDS = [
+  [-566,  79, 48,  8.0],   // the Golgotha outcrop's knoll
+  [-640, 138, 42, 10.0]    // the hillside the tomb is cut into
+];
+function moundTerrain(cx, cz, r, h) {
+  var i0 = Math.max(0, Math.floor((cx - r - X0) / CELL)), i1 = Math.min(NX - 1, Math.ceil((cx + r - X0) / CELL));
+  var j0 = Math.max(0, Math.floor((cz - r - Z0) / CELL)), j1 = Math.min(NZ - 1, Math.ceil((cz + r - Z0) / CELL));
+  for (var j = j0; j <= j1; j++) {
+    var z = Z0 + j * CELL;
+    for (var i = i0; i <= i1; i++) {
+      var x = X0 + i * CELL;
+      var d = Math.hypot(x - cx, z - cz) / r;
+      if (d >= 1) continue;
+      var t = 1 - d * d;
+      HGT[j * NX + i] += h * t * t;
+    }
+  }
+}
+
+// x0,z0,x1,z1,floor  — rock-cut basins
+var CUTS = [
+  [-70, -870,  10, -790, 632.8],   // Siloam
+  [ 12,  352, 134,  478, 728.0],   // Bethesda — one hollow, divided down the middle
+  [-250,  282,-186,  308, 737.5]   // Struthion
+];
+function cutTerrain(x0, z0, x1, z1, floor, f) {
+  var i0 = Math.max(0, Math.floor((x0 - f - X0) / CELL)), i1 = Math.min(NX - 1, Math.ceil((x1 + f - X0) / CELL));
+  var j0 = Math.max(0, Math.floor((z0 - f - Z0) / CELL)), j1 = Math.min(NZ - 1, Math.ceil((z1 + f - Z0) / CELL));
+  for (var j = j0; j <= j1; j++) {
+    var z = Z0 + j * CELL;
+    for (var i = i0; i <= i1; i++) {
+      var x = X0 + i * CELL;
+      var dx = Math.max(x0 - x, 0, x - x1), dz = Math.max(z0 - z, 0, z - z1);
+      var d = Math.hypot(dx, dz);
+      if (d > f) continue;
+      var t = 1 - d / f; t = t * t * (3 - 2 * t);
+      var k = j * NX + i;
+      HGT[k] = lerp(HGT[k], Math.min(HGT[k], floor), t);
+    }
+  }
+}
+
+function ground(x, z) {
+  var fx = (x - X0) / CELL, fz = (z - Z0) / CELL;
+  var i = Math.floor(fx), j = Math.floor(fz);
+  if (i < 0) i = 0; if (j < 0) j = 0;
+  if (i > NX - 2) i = NX - 2; if (j > NZ - 2) j = NZ - 2;
+  var tx = clamp(fx - i, 0, 1), tz = clamp(fz - j, 0, 1);
+  var a = HGT[j * NX + i], b = HGT[j * NX + i + 1], c = HGT[(j + 1) * NX + i], d = HGT[(j + 1) * NX + i + 1];
+  return lerp(lerp(a, b, tx), lerp(c, d, tx), tz);
+}
+
+/* ============================================================
+   3. MESH BUILDER
+   Vertex: pos(3f) nor(3f) col(4ub) id(4ub) meta(4ub) = 36 bytes
+   meta = [style, confidence, ambient-occlusion, spare]
+   styles: 0 flat  1 ashlar  2 terrain  3 water  4 foliage  5 gold  6 plaster
+   ============================================================ */
+function Mesh() {
+  this.cap = 1 << 16; this.n = 0;
+  this.pos = new Float32Array(this.cap * 3);
+  this.nor = new Float32Array(this.cap * 3);
+  this.col = new Uint8Array(this.cap * 4);
+  this.idc = new Uint8Array(this.cap * 4);
+  this.met = new Uint8Array(this.cap * 4);
+}
+Mesh.prototype.grow = function () {
+  var c = this.cap * 2;
+  var p = new Float32Array(c * 3); p.set(this.pos); this.pos = p;
+  var q = new Float32Array(c * 3); q.set(this.nor); this.nor = q;
+  var a = new Uint8Array(c * 4); a.set(this.col); this.col = a;
+  var b = new Uint8Array(c * 4); b.set(this.idc); this.idc = b;
+  var m = new Uint8Array(c * 4); m.set(this.met); this.met = m;
+  this.cap = c;
+};
+Mesh.prototype.vert = function (px, py, pz, nx, ny, nz, ao) {
+  if (this.n >= this.cap) this.grow();
+  var i = this.n, i3 = i * 3, i4 = i * 4;
+  this.pos[i3] = px; this.pos[i3 + 1] = py; this.pos[i3 + 2] = pz;
+  this.nor[i3] = nx; this.nor[i3 + 1] = ny; this.nor[i3 + 2] = nz;
+  this.col[i4] = M.r; this.col[i4 + 1] = M.g; this.col[i4 + 2] = M.b; this.col[i4 + 3] = M.a;
+  this.idc[i4] = ID.r; this.idc[i4 + 1] = ID.g; this.idc[i4 + 2] = ID.b; this.idc[i4 + 3] = 255;
+  this.met[i4] = M.style; this.met[i4 + 1] = M.conf; this.met[i4 + 2] = Math.round(clamp(ao, 0, 1) * 255); this.met[i4 + 3] = 0;
+  this.n++;
+};
+Mesh.prototype.pack = function () {
+  var n = this.n, buf = new ArrayBuffer(n * 36);
+  var f = new Float32Array(buf), u = new Uint8Array(buf);
+  for (var i = 0; i < n; i++) {
+    var o9 = i * 9, o36 = i * 36, i3 = i * 3, i4 = i * 4;
+    f[o9] = this.pos[i3]; f[o9 + 1] = this.pos[i3 + 1]; f[o9 + 2] = this.pos[i3 + 2];
+    f[o9 + 3] = this.nor[i3]; f[o9 + 4] = this.nor[i3 + 1]; f[o9 + 5] = this.nor[i3 + 2];
+    u[o36 + 24] = this.col[i4]; u[o36 + 25] = this.col[i4 + 1]; u[o36 + 26] = this.col[i4 + 2]; u[o36 + 27] = this.col[i4 + 3];
+    u[o36 + 28] = this.idc[i4]; u[o36 + 29] = this.idc[i4 + 1]; u[o36 + 30] = this.idc[i4 + 2]; u[o36 + 31] = 255;
+    u[o36 + 32] = this.met[i4]; u[o36 + 33] = this.met[i4 + 1]; u[o36 + 34] = this.met[i4 + 2]; u[o36 + 35] = 0;
+  }
+  return buf;
+};
+
+var M  = { r: 220, g: 210, b: 185, a: 255, style: 0, conf: 0 };
+var ID = { r: 0, g: 0, b: 0 };
+var MB = null;                              // active mesh
+
+function mat(hex, style, conf) {
+  M.r = (hex >> 16) & 255; M.g = (hex >> 8) & 255; M.b = hex & 255; M.a = 255;
+  M.style = style === undefined ? 1 : style;
+  M.conf = conf === undefined ? M.conf : conf;
+}
+function alpha(a) { M.a = Math.round(a * 255); }
+function conf(c) { M.conf = c; }
+function setId(id) { ID.r = id & 255; ID.g = (id >> 8) & 255; ID.b = (id >> 16) & 255; }
+
+// The scene is authored with +X east and +Z north. In a right-handed frame with
+// X east and Y up, +Z falls to the south — so Z is mirrored here, once, on the
+// way into the buffer. Everything upstream can keep using compass coordinates.
+function tri(a, b, c, ao) {
+  var ax = a[0], ay = a[1], az = -a[2];
+  var bx = b[0], by = b[1], bz = -b[2];
+  var cx = c[0], cy = c[1], cz = -c[2];
+  var ux = bx-ax, uy = by-ay, uz = bz-az;
+  var vx = cx-ax, vy = cy-ay, vz = cz-az;
+  var nx = uy*vz - uz*vy, ny = uz*vx - ux*vz, nz = ux*vy - uy*vx;
+  var l = Math.hypot(nx, ny, nz);
+  if (l < 1e-9) { nx = 0; ny = 1; nz = 0; } else { nx/=l; ny/=l; nz/=l; }
+  ao = ao || [1,1,1];
+  MB.vert(ax,ay,az, nx,ny,nz, ao[0]);
+  MB.vert(bx,by,bz, nx,ny,nz, ao[1]);
+  MB.vert(cx,cy,cz, nx,ny,nz, ao[2]);
+}
+function quad(a, b, c, d, ao) {
+  ao = ao || [1,1,1,1];
+  tri(a, b, c, [ao[0], ao[1], ao[2]]);
+  tri(a, c, d, [ao[0], ao[2], ao[3]]);
+}
+
+var AOB = 0.42, AOM = 0.72;
+
+function box(cx, cy, cz, sx, sy, sz, ry, aoBot) {
+  var hx=sx/2, hy=sy/2, hz=sz/2, c=Math.cos(ry||0), s=Math.sin(ry||0);
+  var ab = aoBot === undefined ? AOB : aoBot;
+  function P(x, y, z) { return [cx + x*c + z*s, cy + y, cz - x*s + z*c]; }
+  var a=P(-hx,-hy,-hz), b=P(hx,-hy,-hz), e=P(hx,-hy,hz), f=P(-hx,-hy,hz);
+  var g=P(-hx,hy,-hz), h=P(hx,hy,-hz), i=P(hx,hy,hz), j=P(-hx,hy,hz);
+  quad(g,h,i,j,[1,1,1,1]);
+  quad(f,e,b,a,[ab,ab,ab,ab]);
+  quad(a,b,h,g,[ab,ab,1,1]);
+  quad(e,f,j,i,[ab,ab,1,1]);
+  quad(b,e,i,h,[ab,ab,1,1]);
+  quad(f,a,g,j,[ab,ab,1,1]);
+}
+function boxAt(x0, x1, z0, z1, y0, y1, aoBot) {
+  box((x0+x1)/2, (y0+y1)/2, (z0+z1)/2, Math.abs(x1-x0), Math.abs(y1-y0), Math.abs(z1-z0), 0, aoBot);
+}
+function prism(poly, y0, y1, cap) {
+  var n = poly.length, i;
+  for (i = 0; i < n; i++) {
+    var p = poly[i], q = poly[(i + 1) % n];
+    quad([p[0],y0,p[1]], [q[0],y0,q[1]], [q[0],y1,q[1]], [p[0],y1,p[1]], [AOB,AOB,1,1]);
+  }
+  if (cap !== false) for (i = 1; i < n - 1; i++)
+    tri([poly[0][0],y1,poly[0][1]], [poly[i][0],y1,poly[i][1]], [poly[i+1][0],y1,poly[i+1][1]], [1,1,1]);
+}
+function cyl(cx, cy, cz, r0, r1, h, seg, capTop) {
+  seg = seg || 8;
+  var i, a0, a1, p0, p1, q0, q1;
+  for (i = 0; i < seg; i++) {
+    a0 = i / seg * Math.PI * 2; a1 = (i + 1) / seg * Math.PI * 2;
+    p0 = [cx + Math.cos(a0)*r0, cy, cz + Math.sin(a0)*r0];
+    p1 = [cx + Math.cos(a1)*r0, cy, cz + Math.sin(a1)*r0];
+    q1 = [cx + Math.cos(a1)*r1, cy + h, cz + Math.sin(a1)*r1];
+    q0 = [cx + Math.cos(a0)*r1, cy + h, cz + Math.sin(a0)*r1];
+    quad(p0, p1, q1, q0, [AOM, AOM, 1, 1]);
+  }
+  if (capTop !== false) for (i = 0; i < seg; i++) {
+    a0 = i / seg * Math.PI * 2; a1 = (i + 1) / seg * Math.PI * 2;
+    tri([cx, cy + h, cz],
+        [cx + Math.cos(a0)*r1, cy + h, cz + Math.sin(a0)*r1],
+        [cx + Math.cos(a1)*r1, cy + h, cz + Math.sin(a1)*r1], [1,1,1]);
+  }
+}
+function cone(cx, cy, cz, r, h, seg) {
+  seg = seg || 6;
+  for (var i = 0; i < seg; i++) {
+    var a0 = i/seg*Math.PI*2, a1 = (i+1)/seg*Math.PI*2;
+    tri([cx + Math.cos(a0)*r, cy, cz + Math.sin(a0)*r],
+        [cx + Math.cos(a1)*r, cy, cz + Math.sin(a1)*r],
+        [cx, cy + h, cz], [AOM, AOM, 1]);
+  }
+}
+function column(x, z, yBase, h, r) {
+  box(x, yBase + 0.35, z, r*2.9, 0.7, r*2.9, 0, AOB);
+  cyl(x, yBase + 0.7, z, r, r*0.87, h - 1.5, 8, false);
+  box(x, yBase + h - 0.4, z, r*2.7, 0.8, r*2.7, 0, AOM);
+}
+function colonnade(ax, az, bx, bz, gap, rows, rowGap, yBase, h, r, followGround) {
+  var dx = bx - ax, dz = bz - az, len = Math.hypot(dx, dz);
+  var n = Math.max(2, Math.round(len / gap));
+  var ux = dx / len, uz = dz / len, px = -uz, pz = ux;
+  for (var i = 0; i <= n; i++) {
+    var t = i / n, x = ax + dx * t, z = az + dz * t;
+    for (var rI = 0; rI < rows; rI++) {
+      var o = (rI - (rows - 1) / 2) * rowGap;
+      var cxp = x + px * o, czp = z + pz * o;
+      column(cxp, czp, followGround ? ground(cxp, czp) : yBase, h, r);
+    }
+  }
+  return { n: n, ux: ux, uz: uz, px: px, pz: pz, len: len };
+}
+
+// A wall ribbon that follows the ground, with merlons and periodic towers.
+function wall(pts, h, t, merlon, towerEvery) {
+  var run = 0, ti = 0;
+  for (var i = 0; i < pts.length - 1; i++) {
+    var a = pts[i], b = pts[i + 1];
+    var dx = b[0]-a[0], dz = b[1]-a[1], L = Math.hypot(dx, dz);
+    if (L < 0.5) continue;
+    var ux = dx/L, uz = dz/L, px = -uz*t/2, pz = ux*t/2;
+    var steps = Math.max(1, Math.round(L / 14));
+    for (var s = 0; s < steps; s++) {
+      var t0 = s/steps, t1 = (s+1)/steps;
+      var x0 = a[0]+dx*t0, z0 = a[1]+dz*t0, x1 = a[0]+dx*t1, z1 = a[1]+dz*t1;
+      var g0 = ground(x0, z0), g1 = ground(x1, z1);
+      var y0 = Math.min(g0, g1) - 14, top0 = g0 + h, top1 = g1 + h;
+      var A=[x0+px,y0,z0+pz], B=[x1+px,y0,z1+pz], C=[x1+px,top1,z1+pz], D=[x0+px,top0,z0+pz];
+      var E=[x0-px,y0,z0-pz], F=[x1-px,y0,z1-pz], G=[x1-px,top1,z1-pz], H=[x0-px,top0,z0-pz];
+      quad(A,B,C,D,[AOB,AOB,1,1]);
+      quad(F,E,H,G,[AOB,AOB,1,1]);
+      quad(D,C,G,H,[1,1,1,1]);
+      if (merlon !== false) {
+        var seg = L / steps;
+        var mn = Math.max(1, Math.round(seg / 4.5));
+        for (var mI = 0; mI < mn; mI++) {
+          var mt = (mI + 0.5) / mn;
+          var mx = x0 + (x1-x0)*mt, mz = z0 + (z1-z0)*mt;
+          box(mx, ground(mx, mz) + h + 0.75, mz, t*0.62, 1.5, 2.1, Math.atan2(ux, uz), AOM);
+        }
+      }
+      run += L / steps;
+      if (towerEvery && run > towerEvery) {
+        run = 0; ti++;
+        var tg = ground(x1, z1);
+        box(x1, tg + (h + 5) / 2 - 6, z1, t + 6.5, h + 5 + 12, t + 6.5, Math.atan2(ux, uz), AOB);
+      }
+    }
+  }
+}
+function gateHouse(x, z, ry, w, h) {
+  var g = ground(x, z);
+  box(x - Math.cos(ry)*(w/2+2.6), g + h/2 - 6, z + Math.sin(ry)*(w/2+2.6), 7.5, h + 12, 8.5, ry, AOB);
+  box(x + Math.cos(ry)*(w/2+2.6), g + h/2 - 6, z - Math.sin(ry)*(w/2+2.6), 7.5, h + 12, 8.5, ry, AOB);
+  box(x, g + h - 1.6, z, w + 3, 3.4, 8, ry, AOM);
+}
+// A flight of steps descending from yTop toward -Z or +Z, riding the slope.
+function stairs(cx, cz, w, run, n, yTop, dirZ) {
+  var stepRun = run / n;
+  var yEnd = ground(cx, cz + dirZ * run);
+  for (var i = 0; i < n; i++) {
+    var z = cz + dirZ * (i + 0.5) * stepRun;
+    var g = ground(cx, z);
+    var yt = Math.max(g + 0.35, yTop - (i + 1) * ((yTop - yEnd) / n));
+    var yb = Math.min(g, yt) - 7;
+    box(cx, (yt + yb) / 2, z, w, yt - yb, stepRun * 1.04, 0, AOM);
+  }
+}
+function water(x0, x1, z0, z1, y) {
+  quad([x0,y,z0],[x1,y,z0],[x1,y,z1],[x0,y,z1],[1,1,1,1]);
+}
+function ring(x0, x1, z0, z1, y0, y1, t) {
+  boxAt(x0, x0 + t, z0, z1, y0, y1);
+  boxAt(x1 - t, x1, z0, z1, y0, y1);
+  boxAt(x0 + t, x1 - t, z0, z0 + t, y0, y1);
+  boxAt(x0 + t, x1 - t, z1 - t, z1, y0, y1);
+}
+function pool(x0, x1, z0, z1, waterY, floorY, rimTop) {
+  mat(0xd7cbad, 1);
+  ring(x0 - 6, x1 + 6, z0 - 6, z1 + 6, floorY - 5, rimTop, 6);
+  boxAt(x0, x1, z0, z1, floorY - 1.4, floorY);
+  mat(0x3f7a72, 3);
+  water(x0, x1, z0, z1, waterY);
+}
+// half-ellipsoid — rounded rock
+function dome(cx, cy, cz, rx, rz, h, su, sv) {
+  su = su || 14; sv = sv || 5;
+  for (var v = 0; v < sv; v++) {
+    var p0 = v / sv * Math.PI / 2, p1 = (v + 1) / sv * Math.PI / 2;
+    var y0 = cy + Math.sin(p0) * h, y1 = cy + Math.sin(p1) * h;
+    var c0 = Math.cos(p0), c1 = Math.cos(p1);
+    var ao0 = AOM + v * (1 - AOM) / sv, ao1 = AOM + (v + 1) * (1 - AOM) / sv;
+    for (var u = 0; u < su; u++) {
+      var a0 = u / su * Math.PI * 2, a1 = (u + 1) / su * Math.PI * 2;
+      var A = [cx + Math.cos(a0)*rx*c0, y0, cz + Math.sin(a0)*rz*c0];
+      var B = [cx + Math.cos(a1)*rx*c0, y0, cz + Math.sin(a1)*rz*c0];
+      if (v === sv - 1) { tri(A, B, [cx, cy + h, cz], [ao0, ao0, 1]); continue; }
+      var C = [cx + Math.cos(a1)*rx*c1, y1, cz + Math.sin(a1)*rz*c1];
+      var D = [cx + Math.cos(a0)*rx*c1, y1, cz + Math.sin(a0)*rz*c1];
+      quad(A, B, C, D, [ao0, ao0, ao1, ao1]);
+    }
+  }
+}
+// an upright disc whose axis runs east-west — the tomb's blocking stone
+function discX(cx, cy, cz, r, t, seg) {
+  seg = seg || 16;
+  for (var i = 0; i < seg; i++) {
+    var a0 = i / seg * Math.PI * 2, a1 = (i + 1) / seg * Math.PI * 2;
+    var y0 = cy + Math.sin(a0)*r, z0 = cz + Math.cos(a0)*r;
+    var y1 = cy + Math.sin(a1)*r, z1 = cz + Math.cos(a1)*r;
+    quad([cx-t/2, y0, z0], [cx+t/2, y0, z0], [cx+t/2, y1, z1], [cx-t/2, y1, z1], [AOM,AOM,AOM,AOM]);
+    tri([cx-t/2, cy, cz], [cx-t/2, y1, z1], [cx-t/2, y0, z0], [1,1,1]);
+    tri([cx+t/2, cy, cz], [cx+t/2, y0, z0], [cx+t/2, y1, z1], [1,1,1]);
+  }
+}
+// an annular step — used for the fifteen semicircular stairs before Nicanor
+function arcStep(cx, cz, rIn, rOut, y0, y1, a0, a1, seg) {
+  for (var i = 0; i < seg; i++) {
+    var t0 = a0 + (a1 - a0) * i / seg, t1 = a0 + (a1 - a0) * (i + 1) / seg;
+    var c0 = Math.cos(t0), s0 = Math.sin(t0), c1 = Math.cos(t1), s1 = Math.sin(t1);
+    quad([cx + c0*rIn, y1, cz + s0*rIn], [cx + c0*rOut, y1, cz + s0*rOut],
+         [cx + c1*rOut, y1, cz + s1*rOut], [cx + c1*rIn, y1, cz + s1*rIn], [1,1,1,1]);
+    quad([cx + c0*rOut, y0, cz + s0*rOut], [cx + c1*rOut, y0, cz + s1*rOut],
+         [cx + c1*rOut, y1, cz + s1*rOut], [cx + c0*rOut, y1, cz + s0*rOut], [AOM,AOM,1,1]);
+  }
+}
+// a roofless enclosure — the four corner chambers of the Court of the Women
+function openChamber(cx, cz, side, h, t) {
+  var r = side / 2;
+  boxAt(cx - r, cx - r + t, cz - r, cz + r, 743.8, 743.8 + h);
+  boxAt(cx + r - t, cx + r, cz - r, cz + r, 743.8, 743.8 + h);
+  boxAt(cx - r + t, cx + r - t, cz - r, cz - r + t, 743.8, 743.8 + h);
+  boxAt(cx - r + t, cx + r - t, cz + r - t, cz + r, 743.8, 743.8 + h);
+}
+function tree(x, z, y, scale, hue) {
+  var h = (4.2 + scale * 3.4);
+  mat(0x5a4632, 0);
+  cyl(x, y - 0.4, z, 0.34*scale, 0.26*scale, h*0.52, 5, false);
+  mat(hue, 4);
+  var cy = y + h*0.5;
+  cone(x, cy - h*0.16, z, 1.55*scale + 0.5, h*0.42, 6);
+  for (var i = 0; i < 6; i++) {
+    var a0 = i/6*Math.PI*2, a1 = (i+1)/6*Math.PI*2, r = 1.55*scale + 0.5;
+    tri([x + Math.cos(a0)*r, cy - h*0.16, z + Math.sin(a0)*r],
+        [x, cy - h*0.5, z],
+        [x + Math.cos(a1)*r, cy - h*0.16, z + Math.sin(a1)*r], [AOM, AOB, AOM]);
+  }
+}
+
+/* ============================================================
+   4. THE CATALOGUE
+   ============================================================ */
+var OBJ = [null];   // index === picking id
+function place(o) {
+  OBJ.push(o);
+  setId(OBJ.length - 1);
+  conf(o.conf || 0);
+  return OBJ.length - 1;
+}
+var LAYERS = [
+  { key: "terrain", name: "Hills and valleys", on: true },
+  { key: "temple",  name: "Temple Mount",      on: true },
+  { key: "walls",   name: "Walls and gates",   on: true },
+  { key: "civic",   name: "Palaces and civic", on: true },
+  { key: "water",   name: "Pools and water",   on: true },
+  { key: "city",    name: "Houses and streets",on: true },
+  { key: "nature",  name: "Trees and gardens", on: true },
+  { key: "future",  name: "Third Wall (not yet built)", on: false, ghost: true }
+];
+var RANGE = {};
+var curLayer = null;
+function layer(key) {
+  if (curLayer) RANGE[curLayer].count = MB.n - RANGE[curLayer].start;
+  curLayer = key;
+  RANGE[key] = { start: MB.n, count: 0 };
+}
+function endLayer() { if (curLayer) { RANGE[curLayer].count = MB.n - RANGE[curLayer].start; curLayer = null; } }
+
+/* --- palette --- */
+var C_STONE = 0xd9cdb0, C_STONE_L = 0xe7ddc4, C_STONE_D = 0xbfb192,
+    C_PLASTER = 0xe6dfcd, C_ROOF2 = 0xb0a288, C_GOLD = 0xd6a63c,
+    C_MARBLE = 0xf1ecdc, C_ROAD = 0xc6bb9e, C_DIRT = 0xb4a684,
+    C_ROCK = 0xc2b291, C_ROCK_D = 0xb2a284;
+
+/* --- footprint of the Herodian platform (measured sides) --- */
+var TM = [[-157,-244],[123,-240],[158,229],[-157,247]];
+var TM_TOP = 740;
+
+function inPoly(x, z, poly) {
+  var c = false;
+  for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    if (((poly[i][1] > z) !== (poly[j][1] > z)) &&
+        (x < (poly[j][0]-poly[i][0]) * (z-poly[i][1]) / (poly[j][1]-poly[i][1]) + poly[i][0])) c = !c;
+  }
+  return c;
+}
+
+/* ---------- 4a. Temple Mount ---------- */
+function buildTemple() {
+  layer("temple");
+
+  place({
+    name: "The Temple Mount",
+    cat: "Sacred precinct", conf: 0,
+    facts: [["Platform", "488 m W · 470 m E · 315 m N · 280 m S"], ["Area", "about 15 hectares (36 acres)"], ["Built", "Herod the Great, from 20/19 BC"]],
+    text: "Herod doubled the older sanctuary platform by wrapping the hill in colossal retaining walls and filling behind them. The walls stand roughly 30 m above the street on the west and south, with foundations reaching bedrock. Each course is set back about 3 cm from the one below so the wall does not appear to lean out over you.",
+    scripture: ["Mark 13:1", "John 2:20"],
+    focus: { t: [0, 745, 0], d: 780, az: 2.5, el: 0.42 },
+    link: "../temple/index.html"
+  });
+  mat(C_STONE, 1);
+  prism(TM, 560, TM_TOP);
+  mat(C_STONE_L, 1);
+  prism([[-160,-247],[126,-243],[161,232],[-160,250]], TM_TOP, TM_TOP + 1.2);
+
+  // the pilgrim colonnades around the outer court
+  mat(C_MARBLE, 0);
+  colonnade(150, -228, 150, 222, 6.2, 2, 8.5, TM_TOP, 12.5, 1.15);   // Solomon's Porch
+  colonnade(-148, -230, -148, 238, 6.2, 2, 8.5, TM_TOP, 12.5, 1.15); // west portico
+  colonnade(-146, 234, 148, 222, 6.4, 2, 8.5, TM_TOP, 12.5, 1.15);   // north portico
+  mat(C_ROOF2, 6);
+  boxAt(139, 161, -232, 226, TM_TOP + 13.2, TM_TOP + 15.4);
+  boxAt(-159, -137, -234, 242, TM_TOP + 13.2, TM_TOP + 15.4);
+  boxAt(-155, 157, 218, 240, TM_TOP + 13.2, TM_TOP + 15.4);
+
+  place({
+    name: "Solomon's Porch",
+    cat: "Colonnade", conf: 0,
+    facts: [["Length", "about 470 m along the east wall"], ["Age", "pre-Herodian — Herod left it standing"]],
+    text: "The eastern colonnade kept its older masonry when Herod rebuilt the rest, which is why it carried Solomon's name. It was a sheltered place to teach, and the early church kept meeting here after the resurrection.",
+    scripture: ["John 10:22–23", "Acts 3:11", "Acts 5:12"],
+    focus: { t: [150, 748, 0], d: 210, az: 1.5, el: 0.2 },
+    link: "../temple/index.html"
+  });
+  mat(C_STONE_L, 1);
+  boxAt(137, 141, -232, 226, TM_TOP, TM_TOP + 1.0);
+
+  // Royal Stoa
+  place({
+    name: "The Royal Stoa",
+    cat: "Basilica and market", conf: 0,
+    facts: [["Columns", "162, in four rows"], ["Height", "about 12 m per column"], ["Length", "about 280 m"]],
+    text: "A Roman basilica set along the south wall: a high central nave with two side aisles, entered from the monumental stairs below. Money was changed and sacrificial animals sold here, which makes it the likeliest setting for the overturned tables.",
+    scripture: ["Matthew 21:12–13", "Mark 11:15–17"],
+    focus: { t: [-20, 752, -232], d: 260, az: 3.14, el: 0.22 },
+    link: "../temple/index.html"
+  });
+  mat(C_MARBLE, 0);
+  var rs;
+  for (var rr = 0; rr < 4; rr++) {
+    var zz = -234 + rr * 6.4;
+    rs = colonnade(-146, zz, 116, zz + 1, 6.8, 1, 0, TM_TOP, rr === 1 || rr === 2 ? 17.5 : 12.2, rr === 1 || rr === 2 ? 1.35 : 1.12);
+  }
+  mat(C_STONE_L, 1);
+  boxAt(-150, 120, -238, -227, TM_TOP + 12.4, TM_TOP + 14.4);
+  boxAt(-150, 120, -215, -206, TM_TOP + 12.4, TM_TOP + 14.4);
+  mat(C_ROOF2, 6);
+  boxAt(-150, 120, -240, -204, TM_TOP + 18.6, TM_TOP + 20.6);
+  boxAt(-150, 120, -230, -213, TM_TOP + 24.5, TM_TOP + 26.3);
+  mat(C_MARBLE, 0);
+  boxAt(-150, 120, -231, -212, TM_TOP + 20.6, TM_TOP + 24.5);
+
+  // inner precinct
+  var soreg = place({
+    name: "The Soreg",
+    cat: "Boundary", conf: 0,
+    facts: [["Height", "about 1.3 m"], ["Warning", "Greek and Latin tablets at every gate"]],
+    text: "A low stone screen marked the line past which no Gentile could go. One complete warning tablet survives in Istanbul, a second fragment in Jerusalem: whoever is caught beyond this point has himself to blame for the death that follows.",
+    scripture: ["Ephesians 2:14", "Acts 21:28"],
+    focus: { t: [30, 748, 45], d: 200, az: 2.3, el: 0.3 },
+    link: "../temple/index.html"
+  });
+  mat(C_STONE_D, 1);
+  boxAt(-76, 152, -14, -10, 742, 744.2); boxAt(-76, 152, 100, 104, 742, 744.2);
+  boxAt(-76, -72, -14, 104, 742, 744.2); boxAt(148, 152, -14, 104, 742, 744.2);
+  mat(C_STONE_L, 1);
+  boxAt(-72, 148, -10, 100, 740, 742.6);
+
+  // ---------------------------------------------------------------------------
+  // THE INNER PRECINCT (the Azarah), built to the Mishnah, tractate Middot.
+  // Dimensions refined against the benja-admin/temple-mount reconstruction
+  // (Middot + Josephus, Ritmeyer's 500-cubit square), ported to this app's
+  // centre-origin metric frame.
+  // The whole raised platform measured 187 cubits E–W by 135 N–S. It stood on
+  // higher ground than the outer court and was ringed by a wall with chambers.
+  // Ground datum for the inner courts: 743.2 m. 1 cubit ~ 0.5 m in this model.
+  // ---------------------------------------------------------------------------
+
+  // The Chel — the raised terrace and its low balustrade around the whole precinct
+  mat(C_STONE_L, 1);
+  boxAt(-56, 132, 4, 88, 741.4, 743.2);
+  mat(C_STONE, 1);
+  boxAt(-56, 132, 4, 6, 743.2, 744.5); boxAt(-56, 132, 86, 88, 743.2, 744.5);
+  boxAt(-56, -54, 4, 88, 743.2, 744.5);
+
+  // ===================== COURT OF THE WOMEN (east) =====================
+  place({
+    name: "Court of the Women",
+    cat: "Temple court", conf: 0,
+    facts: [["Size", "135 × 135 cubits (70.9 m square)"], ["Corner chambers", "40 cubits square — and roofless (Middot 2:5)"], ["Nazirites SE", "boiled offerings, cut and burned their hair"], ["Wood NE", "priests sorted worm-eaten altar logs"], ["Lepers NW", "the cleansed immersed here"], ["Oils SW", "wine and oil, by Abba Shaul's account"], ["Treasury", "thirteen trumpet-shaped chests"]],
+    text: "The first and largest of the inner courts, entered from the east, and as far as women could go; men crossed it to the courts beyond. A gallery ran round it so the women could look down on the water-drawing at Tabernacles. A chamber stood in each corner — and the Mishnah says plainly they were not roofed, proving it from Ezekiel's vision. Thirteen trumpet-shaped chests stood here for offerings: this is where Jesus watched a widow give her two small coins, and outgive them all.",
+    scripture: ["Mark 12:41–44", "Luke 21:1–4", "John 8:20"],
+    focus: { t: [92, 750, 45], d: 140, az: 1.95, el: 0.34 },
+    link: "../temple/index.html"
+  });
+  // court floor
+  mat(C_STONE_L, 1);
+  boxAt(50, 128, 10, 82, 743.2, 743.8);
+  // enclosing wall
+  mat(C_STONE, 1);
+  boxAt(124, 128, 10, 82, 743.8, 754);      // east wall
+  boxAt(50, 128, 10, 14, 743.8, 754);       // south wall
+  boxAt(50, 128, 78, 82, 743.8, 754);       // north wall
+  // the surrounding two-storey colonnade (Middot 2:5 — a gallery for the women)
+  mat(C_MARBLE, 0);
+  colonnade(56, 20, 120, 20, 7.2, 1, 0, 743.8, 6.2, 0.62);   // inner south row
+  colonnade(56, 72, 120, 72, 7.2, 1, 0, 743.8, 6.2, 0.62);   // inner north row
+  colonnade(118, 24, 118, 68, 7.2, 1, 0, 743.8, 6.2, 0.62);  // inner east row
+  mat(C_STONE_L, 1);
+  boxAt(54, 122, 16, 24, 749.6, 750.6);     // gallery floor, south
+  boxAt(54, 122, 68, 76, 749.6, 750.6);     // gallery floor, north
+  boxAt(114, 122, 16, 76, 749.6, 750.6);    // gallery floor, east
+  mat(C_MARBLE, 0);
+  colonnade(56, 20, 120, 20, 7.2, 1, 0, 750.6, 3.6, 0.5);
+  colonnade(56, 72, 120, 72, 7.2, 1, 0, 750.6, 3.6, 0.5);
+  mat(C_ROOF2, 6);
+  boxAt(52, 124, 15, 25, 754.4, 755.6);
+  boxAt(52, 124, 67, 77, 754.4, 755.6);
+  boxAt(113, 124, 15, 77, 754.4, 755.6);
+  // four corner chambers (Middot 2:5): Nazirites SE, Wood NE, Lepers NW, Oils SW
+  // 40 cubits square (21 m) and expressly NOT roofed — Middot 2:5, from Ezekiel
+  mat(C_STONE, 1);
+  openChamber(114, 22.5, 21, 8.5, 1.6);   // SE — the Nazirites
+  openChamber(114, 69.5, 21, 8.5, 1.6);   // NE — the Wood chamber
+  openChamber(62, 69.5, 21, 8.5, 1.6);    // NW — the Lepers
+  openChamber(62, 22.5, 21, 8.5, 1.6);    // SW — the Oils
+  // the thirteen trumpet-chests along the colonnade
+  mat(0x8a7d52, 0);
+  for (var tr = 0; tr < 13; tr++) {
+    var trx = 60 + (tr % 7) * 9.5, trz = tr < 7 ? 28 : 64;
+    if (tr >= 7) trx = 64 + (tr - 7) * 9.5;
+    cyl(trx, 743.8, trz, 0.8, 0.45, 2.4, 6, false);
+    mat(C_GOLD, 5); cyl(trx, 746.2, trz, 0.55, 0.75, 0.6, 6); mat(0x8a7d52, 0);
+  }
+  // four great lampstands (Middot 2:6 — tall, with steps the priests climbed)
+  mat(C_GOLD, 5);
+  for (var lp = 0; lp < 4; lp++) {
+    var lx = 70 + (lp % 2) * 40, lz = 30 + Math.floor(lp / 2) * 28;
+    cyl(lx, 743.8, lz, 0.55, 0.42, 15, 6, false);
+    for (var arm = 0; arm < 4; arm++) {
+      var ax2 = lx + (arm - 1.5) * 1.4;
+      cyl(ax2, 758.8, lz, 0.16, 0.16, 1.1, 4);
+      box(ax2, 759.9, lz, 0.7, 0.35, 0.7, 0);
+    }
+  }
+
+  // ===================== THE FIFTEEN STEPS + NICANOR GATE =====================
+  place({
+    name: "The Nicanor Gate",
+    cat: "Gate", conf: 1,
+    facts: [["Doors", "Corinthian bronze — of ten inner gates, the one not plated in gold"], ["Approach", "fifteen semicircular steps, \u201clike half a round threshing floor\u201d"], ["Rise", "7½ cubits (about 3.9 m)"], ["Josephus", "50 cubits high, doors of 40"]],
+    text: "The gate between the Court of the Women and the courtyard, up fifteen curved steps on which the Levites sang the fifteen Psalms of Ascents. Josephus singles it out: nine inner gates were plated in silver and gold, but this eastern one was Corinthian bronze and worth more than all of them. A purified mother presented herself here and a healed leper was brought here — so both the Presentation and the healing at the Beautiful Gate are set near this spot, though whether \u201cBeautiful\u201d means this gate or the outer eastern one is unsettled.",
+    scripture: ["Acts 3:1–10", "Luke 2:22–24"],
+    focus: { t: [50, 752, 45], d: 95, az: 1.62, el: 0.22 },
+    link: "../temple/index.html"
+  });
+  // fifteen semicircular steps — "shaped like the half of a round threshing floor",
+  // rising 7.5 cubits from the Women's Court to the gate
+  mat(C_STONE_L, 1);
+  for (var ns = 0; ns < 15; ns++) {
+    var rOut = 15.6 - ns * 0.92, rIn = rOut - 0.92;
+    var sy0 = 743.8 + ns * 0.263, sy1 = 743.8 + (ns + 1) * 0.263;
+    arcStep(50, 45, rIn, rOut, sy0, sy1, -Math.PI / 2, Math.PI / 2, 14);
+  }
+  // gatehouse mass and bronze doors
+  mat(C_STONE, 1);
+  boxAt(44, 50, 26, 30, 749.2, 766); boxAt(44, 50, 60, 64, 749.2, 766);
+  boxAt(44, 50, 26, 64, 762, 767.5);
+  mat(0x7a5a2c, 5);                          // Corinthian bronze — darker than the gold
+  boxAt(46, 48, 30.5, 44.5, 749.6, 761);
+  boxAt(46, 48, 45.5, 59.5, 749.6, 761);
+
+  // ===================== COURT OF ISRAEL & OF THE PRIESTS =====================
+  place({
+    name: "Court of Israel and of the Priests",
+    cat: "Temple court", conf: 0,
+    facts: [["Size", "187 × 135 cubits together"], ["Israel's strip", "11 cubits, a step below the priests"], ["The Duchan", "the step where the Levites sang"]],
+    text: "West of the Nicanor Gate the ground rose again. A narrow strip along the east — the Court of Israel — was as close as a layman could come; a low step and rail divided it from the Court of the Priests, where only priests trod. On the platform stood the altar, the laver, and the ramp, all in open view of the men gathered at the rail.",
+    scripture: ["Leviticus 1:1–9", "Luke 1:8–11", "2 Chronicles 4:6"],
+    focus: { t: [-8, 754, 45], d: 150, az: 2.55, el: 0.32 },
+    link: "../temple/index.html"
+  });
+  // the inner court floor, raised above the Women's Court
+  mat(C_STONE_L, 1);
+  boxAt(-54, 46, 12, 80, 743.8, 745.4);      // Court of Israel step
+  boxAt(-54, 40, 12, 80, 745.4, 746.6);      // Court of the Priests, a step higher
+  // the low rail (soreg) dividing Israel from the priests
+  mat(C_STONE_D, 1);
+  boxAt(39, 41, 14, 78, 746.6, 747.6);
+  // the enclosing wall of the inner court, with its chambers
+  mat(C_STONE, 1);
+  boxAt(-58, -54, 8, 84, 745.4, 758);        // west wall behind the sanctuary line
+  boxAt(-58, 46, 8, 12, 745.4, 756);         // south wall
+  boxAt(-58, 46, 80, 84, 745.4, 756);        // north wall
+  // the gates of the courtyard — three north, three south, gold-plated (Middot 1:4)
+  for (var ig = 0; ig < 3; ig++) {
+    var gx = -30 + ig * 30;
+    mat(C_GOLD, 5);
+    boxAt(gx - 4.5, gx + 4.5, 7.4, 12.6, 745.4, 753.5);
+    boxAt(gx - 4.5, gx + 4.5, 79.4, 84.6, 745.4, 753.5);
+    mat(0x2b2620, 0);
+    boxAt(gx - 3.2, gx + 3.2, 7.0, 13.0, 745.4, 751.6);
+    boxAt(gx - 3.2, gx + 3.2, 79.0, 85.0, 745.4, 751.6);
+    mat(C_STONE, 1);
+  }
+  // side chambers along the north and south inner walls (Middot 5)
+  mat(C_STONE_L, 1);
+  for (var sc = 0; sc < 5; sc++) {
+    boxAt(-48 + sc*17, -38 + sc*17, 12, 20, 745.4, 751);
+    boxAt(-48 + sc*17, -38 + sc*17, 72, 80, 745.4, 751);
+  }
+  mat(C_ROOF2, 6);
+  boxAt(-50, 42, 12, 20, 751, 752.2);
+  boxAt(-50, 42, 72, 80, 751, 752.2);
+
+  // ===================== THE LAVER & THE ALTAR =====================
+  place({
+    name: "The Altar of Burnt Offering",
+    cat: "Altar", conf: 0,
+    facts: [["Base", "32 cubits square = 16.8 m (Middot)"], ["Height", "10 cubits, stepping inward twice"], ["Hearth", "24 cubits square, a horn at each corner"], ["Ramp", "32 × 16 cubits, from the south"], ["Stone", "unhewn — no iron ever touched it"], ["Josephus", "50 × 50 × 15 cubits, half again as large"]],
+    text: "A stepped mass of unhewn stone, laid up without iron, burning the daily offerings from dawn to dusk. The base was thirty-two cubits square and stepped in twice to a twenty-four-cubit hearth, a horn at each corner. A ramp climbed it from the south, because Exodus forbids steps to an altar. North of it lay the slaughtering floor: rings set in the pavement, marble tables for the pieces, and pillars with hooks for flaying. The blood ran in channels down to the Kidron.",
+    scripture: ["Exodus 20:24–26", "Leviticus 1:1–9", "Matthew 5:23–24"],
+    focus: { t: [16, 754, 45], d: 92, az: 2.2, el: 0.26 },
+    link: "../temple/index.html"
+  });
+  // the laver
+  mat(0x9a7d3e, 5);
+  cyl(30, 746.6, 46, 2.0, 1.7, 2.2, 8); cyl(30, 748.8, 46, 2.3, 2.0, 0.5, 8);
+  // the altar — Middot 3:1, tiers 32 -> 30 -> 28 -> 26 cubits, hearth 24, horns at the corners.
+  // centred on the temple axis (z=46); 1 cubit ~ 0.5 m. base 16.8 m -> x 4..20.8, z 37.6..54.4
+  mat(0xcfc3a4, 1);
+  boxAt(4.0, 20.8, 37.6, 54.4, 746.6, 747.1);      // yesod (base), 32c, rise 1
+  boxAt(4.5, 20.3, 38.1, 53.9, 747.1, 749.7);      // to the ledge, 30c, rise 5
+  boxAt(5.0, 19.8, 38.6, 53.4, 749.7, 751.3);      // the sovev, 28c, rise 3
+  boxAt(5.5, 19.3, 39.1, 52.9, 751.3, 751.9);      // horns course, 26c, rise 1
+  mat(0xc06a4a, 0);
+  boxAt(5.0, 19.8, 45.4, 46.6, 748.9, 749.1);      // the red line round the middle
+  mat(0xcfc3a4, 1);
+  boxAt(6.0, 18.8, 39.6, 52.4, 751.9, 752.2);      // the 24-cubit hearth
+  for (var hn = 0; hn < 4; hn++)                    // a horn at each corner
+    box(6.9 + (hn % 2) * 11.0, 752.6, 40.5 + Math.floor(hn / 2) * 11.0, 1.6, 1.4, 1.6, 0);
+  // the wood pile and the fire that never went out (Leviticus 6:12-13)
+  mat(0x4a3524, 0);
+  for (var wd = 0; wd < 7; wd++)
+    box(8.4 + (wd % 4) * 2.6, 752.5, 42 + Math.floor(wd / 4) * 3.4, 5.2, 0.5, 0.5, wd * 0.4);
+  mat(0xff8422, 7);
+  cone(10.5, 752.8, 43.4, 1.8, 4.2, 6);
+  cone(13.6, 752.8, 46.6, 2.1, 5.4, 6);
+  cone(16.2, 752.8, 44.2, 1.5, 3.4, 6);
+  mat(0xffd070, 7);
+  cone(12.4, 752.8, 45.2, 1.2, 6.6, 6);
+  cone(14.8, 752.8, 43.0, 0.9, 4.6, 6);
+  // the ramp climbing from the south (32 x 16 cubits) — no steps, per Exodus
+  mat(0xcfc3a4, 1);
+  quad([7.5,746.6,54.4],[17.3,746.6,54.4],[17.3,751.7,54.4],[7.5,751.7,54.4],[AOM,AOM,1,1]);
+  boxAt(7.5, 17.3, 54.4, 55.2, 746.6, 751.7);
+
+  // ===================== THE SANCTUARY =====================
+  place({
+    name: "The Sanctuary",
+    cat: "Temple building", conf: 0,
+    facts: [["Front", "100 × 100 cubits (52.5 m each way)"], ["Body", "70 cubits wide; porch shoulders 15 cubits each side"], ["Plan", "\u201cnarrow behind and broad in front, like a lion\u201d"], ["Apex", "60.9 m above the outer court"], ["Cells", "38 side-chambers in three storeys"], ["Doorway", "open, 20 × 40 cubits — no doors"]],
+    text: "The tallest building in Jerusalem, standing twenty-two cubits above the outer court so its gold front caught the sun over Olivet — to a traveller, Josephus says, a mountain of snow where it was not gilded. Its plan is a lion's: a seventy-cubit body, but the porch throws out fifteen-cubit shoulders each side to make a hundred-cubit front. The doorway stood open, no doors and no curtain across it, hung with a golden vine whose clusters were a man's height. Within: the Holy Place with lampstand, incense altar and showbread, and behind the veil the empty Holy of Holies. Forty-six years building — and forty years from this Passover, gone.",
+    scripture: ["Matthew 24:1–2", "Matthew 27:51", "Mark 15:38", "John 2:19–21"],
+    focus: { t: [-14, 772, 45], d: 165, az: 1.78, el: 0.24 },
+    link: "../temple/index.html"
+  });
+  // stylobate
+  mat(C_MARBLE, 1);
+  boxAt(-50, 8, 22, 70, 746.6, 748.9);
+  // twelve steps up to the porch
+  mat(C_MARBLE, 1);
+  for (var ts2 = 0; ts2 < 6; ts2++) boxAt(6 - ts2*0.5, 8, 30 - ts2*0.6, 62 + ts2*0.6, 746.9 + ts2*0.32, 748.9);
+  // ---- the porch (Ulam): 100 cubits tall, and wider than the house (wings N & S) ----
+  mat(C_MARBLE, 1);
+  boxAt(-4, 6, 16, 74, 748.9, 799);                       // porch block, ~100 cubits over the court
+  // gold sheath on the east face, divided into tall recessed panels
+  mat(C_GOLD, 5);
+  boxAt(5.4, 6.7, 16, 74, 748.9, 799);
+  mat(0xb98c2e, 5);                                       // the recessed panel grounds
+  for (var pn = 0; pn < 8; pn++) {
+    var pz = 17.5 + pn * 7.2;
+    if (pz > 30 && pz < 58) continue;                     // leave the doorway clear
+    boxAt(6.55, 6.75, pz, pz + 4.6, 752, 795);
+  }
+  mat(C_GOLD, 5);                                          // horizontal cornice bands
+  boxAt(5.2, 7.0, 16, 74, 794.5, 796.2);
+  boxAt(5.2, 7.0, 16, 74, 749.6, 751.4);
+  // four engaged columns, two each side of the doorway — the form the Bar Kokhba
+  // tetradrachms and several synagogue reliefs give the Temple front
+  for (var ec = 0; ec < 4; ec++) {
+    var ez = [20.5, 27.5, 62.5, 69.5][ec];
+    cyl(6.4, 748.9, ez, 1.9, 1.7, 45.5, 10, false);
+    box(6.4, 747.9, ez, 5.0, 2.0, 5.0, 0);                 // base
+    box(6.4, 795.4, ez, 5.4, 2.4, 5.4, 0);                 // capital
+  }
+  // the great open doorway, 20 x 40 cubits, framed in gold
+  mat(C_GOLD, 5);
+  boxAt(5.0, 6.9, 33, 57, 748.9, 786);                    // gilded jambs/lintel frame
+  mat(0x2b2620, 0);
+  boxAt(4.6, 5.6, 35, 55, 749.4, 783);                    // the shadowed opening
+  // the golden vine over the doorway (Middot 3:8)
+  mat(C_GOLD, 5);
+  boxAt(4.6, 6.9, 34, 56, 783, 787.5);
+  for (var gv = 0; gv < 7; gv++) {
+    var gvx = 4.9, gvz = 35 + gv*3;
+    cyl(gvx, 780 - (gv%2)*2, gvz, 0.5, 0.35, 1.2, 5);     // hanging grape clusters
+  }
+  // ---- the house behind the porch: Holy Place + Holy of Holies ----
+  mat(C_MARBLE, 1);
+  boxAt(-32, -4, 26, 64, 748.9, 776);                     // Holy Place — 70-cubit body
+  boxAt(-50, -32, 26, 64, 748.9, 770);                    // Holy of Holies, a touch lower
+  // the 38 side-chambers in three storeys, widening as they rise (Middot 4:3–4)
+  mat(C_MARBLE, 1);
+  boxAt(-50, -4, 21, 26, 748.9, 754);                     // south cells, lowest storey (5c)
+  boxAt(-50, -4, 64, 69, 748.9, 754);                     // north cells
+  boxAt(-49, -4, 20.4, 26, 754, 758.5);                   // south cells, middle storey (6c)
+  boxAt(-49, -4, 64, 69.6, 754, 758.5);                   // north cells
+  boxAt(-48, -4, 19.8, 26, 758.5, 763);                   // south cells, top storey (7c)
+  boxAt(-48, -4, 64, 70.2, 758.5, 763);                   // north cells
+  boxAt(-54, -48, 19.8, 70.2, 748.9, 763);                // west cells
+  // gilded roofs and the golden spikes that kept the birds off (Middot 4:6)
+  mat(C_GOLD, 5);
+  boxAt(-32, -3.4, 26, 64, 776, 777.6);                   // Holy Place roof
+  boxAt(-50, -32, 26, 64, 770, 771.6);                    // Holy of Holies roof
+  mat(C_MARBLE, 1);                                        // parapet, sunk in the middle
+  ring(-32, -3.4, 26, 64, 777.6, 780.4, 2.6);
+  ring(-50, -32, 26, 64, 771.6, 774.2, 2.6);
+  boxAt(-4, 6, 16, 74, 799, 800.6);                       // porch cornice
+  for (var sp = 0; sp < 14; sp++) cyl(-30 + sp * 2.6, 777.6, 32 + (sp % 2) * 26, 0.14, 0.04, 1.6, 4);
+  // the crenellated parapet of the porch top
+  mat(C_MARBLE, 1);
+  for (var pc = 0; pc < 6; pc++) { box(1, 800.6, 18 + pc*10, 3.5, 2.2, 3.5, 0); }
+
+  // Antonia
+  place({
+    name: "The Antonia Fortress",
+    cat: "Fortress", conf: 1,
+    facts: [["Garrison", "a Roman cohort, doubled at festivals"], ["Towers", "four; the south-east one about 37 m"], ["Named for", "Mark Antony"]],
+    text: "Herod's barracks on the rock at the north-west corner, with stairs down into the Temple porticoes so troops could be in the courts within moments. Paul was rescued down those steps years later. Long shown as the place of Pilate's trial — most scholars now put that at Herod's palace instead.",
+    scripture: ["Acts 21:31–40", "Acts 23:10"],
+    focus: { t: [-195, 762, 272], d: 250, az: 3.6, el: 0.3 }
+  });
+  mat(C_STONE, 1);
+  boxAt(-258, -132, 244, 300, 726, 768);
+  mat(C_STONE_L, 1);
+  boxAt(-254, -136, 248, 296, 768, 770.5);
+  mat(C_STONE, 1);
+  box(-250, 780, 252, 20, 26, 20, 0); box(-140, 780, 252, 20, 26, 20, 0);
+  box(-250, 780, 292, 20, 26, 20, 0); box(-140, 787, 292, 22, 40, 22, 0);
+  mat(C_STONE_L, 1);
+  boxAt(-200, -160, 244, 248, 740, 754);
+
+  // southern steps
+  place({
+    name: "The Southern Steps",
+    cat: "Pilgrim stair", conf: 0,
+    facts: [["Width", "about 64 m"], ["Treads", "alternating wide and narrow — you cannot hurry"], ["Below", "dozens of ritual baths"]],
+    text: "The main pilgrim approach, climbing to the Huldah Gates and through vaulted tunnels onto the platform. Every pilgrim immersed in the baths at the foot of these stairs first. Peter almost certainly preached at Pentecost within sight of them — there was nowhere else that could hold the crowd or baptise three thousand.",
+    scripture: ["Acts 2:1–41", "Psalm 122:1"],
+    focus: { t: [-40, 726, -290], d: 220, az: 3.14, el: 0.24 },
+    link: "../temple/index.html"
+  });
+  mat(C_STONE_L, 1);
+  stairs(-68, -244, 66, 62, 22, 739, -1);
+  stairs(30, -242, 40, 46, 16, 739, -1);
+
+  // Robinson's and Wilson's arches
+  place({
+    name: "Robinson's Arch",
+    cat: "Stair viaduct", conf: 0,
+    facts: [["Span", "about 15 m"], ["Springing", "about 21 m above the street"]],
+    text: "A monumental staircase carried on a giant arch turned back on itself and climbed from the shopping street into the Royal Stoa. The stub of the arch is still there in the western wall, with the paving below smashed by stones thrown down in AD 70.",
+    scripture: [],
+    focus: { t: [-190, 726, -215], d: 170, az: 4.0, el: 0.2 }
+  });
+  mat(C_STONE, 1);
+  for (var ra = 0; ra < 7; ra++) {
+    var t = ra / 6, ay = 712 + Math.sin(t * Math.PI) * 8;
+    boxAt(-157 - ra * 3.6, -153 - ra * 3.6, -228, -213, ay, 712 + t * 27);
+  }
+  boxAt(-186, -174, -232, -209, 700, 730);
+
+  place({
+    name: "Wilson's Arch and the bridge",
+    cat: "Viaduct", conf: 0,
+    facts: [["Span", "about 13 m"], ["Carries", "the road from the Upper City, and the aqueduct"]],
+    text: "A bridge on arches ran from the Upper City straight across the Tyropoeon Valley to a gate in the west wall — the direct route between the priestly mansions and the courts. The aqueduct from Solomon's Pools rode in on it.",
+    scripture: [],
+    focus: { t: [-250, 730, -60], d: 220, az: 4.4, el: 0.22 }
+  });
+  mat(C_STONE, 1);
+  for (var wa = 0; wa < 8; wa++) {
+    var wx = -166 - wa * 22;
+    var gy = ground(wx, -62);
+    boxAt(wx - 5, wx + 5, -72, -52, gy - 6, 727 - wa * 0.2);
+  }
+  boxAt(-350, -150, -74, -50, 727, 731);
+
+  // gates of the Temple Mount
+  place({ name: "The Huldah Gates", cat: "Gate", conf: 0,
+    facts: [["Double Gate", "west — the pilgrim entrance"], ["Triple Gate", "east — the exit"]],
+    text: "Pilgrims went in by one and out by the other, through vaulted ramps that climbed under the Royal Stoa and emerged in the open court. The blocked outlines of both are still visible in the south wall.",
+    scripture: [], focus: { t: [-30, 738, -256], d: 150, az: 3.14, el: 0.22 } });
+  mat(0x3a3226, 0);
+  boxAt(-86, -50, -248, -242, 740, 752);
+  boxAt(12, 40, -246, -240, 740, 750);
+  mat(C_STONE_D, 1);
+  boxAt(-91, -45, -249, -243, 752, 756.5);
+  boxAt(7, 45, -247, -241, 750, 754.5);
+  place({ name: "The Eastern (Shushan) Gate", cat: "Gate", conf: 1,
+    facts: [["Faces", "the Mount of Olives, across the Kidron"]],
+    text: "The single gate in the east wall, looking straight across the Kidron to the Olivet ridge. A procession coming down from Bethphage faces it the whole way.",
+    scripture: ["Ezekiel 44:1–3", "Matthew 21:1–11"], focus: { t: [200, 745, -5], d: 190, az: 1.5, el: 0.2 } });
+  mat(C_STONE_L, 1);
+  boxAt(147, 160, -22, 12, 740, 756);
+  mat(0x3a3226, 0); boxAt(155, 160, -14, 4, 740, 752);
+}
+
+/* ---------- 4b. walls and gates ---------- */
+var FIRST_N = [[-786,-118],[-700,-125],[-620,-130],[-560,-135],[-467,-137],[-380,-130],[-300,-110],[-230,-84],[-166,-64],[-150,-58]];
+var FIRST_S = [[-786,-118],[-806,-200],[-814,-300],[-802,-400],[-772,-500],[-724,-580],[-700,-620],[-640,-682],[-560,-732],[-460,-782],[-360,-824],[-260,-858],[-160,-892],[-100,-906],[-58,-906],[-16,-896],[12,-878],[26,-848],[34,-808],[40,-760],[46,-700],[52,-600],[60,-480],[80,-380],[104,-300],[120,-252],[123,-240]];
+var SECOND  = [[-467,-137],[-452,-40],[-432,40],[-402,120],[-380,200],[-330,270],[-250,300],[-200,282],[-196,250]];
+var THIRD   = [[-800,-110],[-830,60],[-800,240],[-700,400],[-560,470],[-360,520],[-160,500],[-20,430],[60,330],[100,250]];
+
+function buildWalls() {
+  layer("walls");
+
+  place({
+    name: "The First Wall",
+    cat: "City wall", conf: 1,
+    facts: [["Origin", "Hasmonean, on older foundations"], ["Towers", "sixty, by Josephus's count"], ["Encloses", "the Upper City, Mount Zion and the City of David"]],
+    text: "The old circuit, and the strongest. Its northern line runs from the citadel east to the Temple Mount; the rest sweeps round the brow of the western hill, past Mount Zion and down around Siloam before climbing the ridge above the Kidron.",
+    scripture: [],
+    focus: { t: [-420, 760, -420], d: 900, az: 2.4, el: 0.4 }
+  });
+  mat(C_STONE, 1);
+  wall(FIRST_N, 12, 5.5, true, 68);
+  wall(FIRST_S, 12, 5.5, true, 68);
+
+  place({
+    name: "The Second Wall",
+    cat: "City wall", conf: 2,
+    facts: [["Runs", "Gennath Gate to the Antonia"], ["Towers", "fourteen"], ["Course", "reconstructed — almost nothing survives"]],
+    text: "Josephus says only that it began at the Gennath Gate, enclosed the northern quarter, and ended at the Antonia. Every line ever drawn for it is an argument, not a survey. It matters enormously: the quarry-garden where Golgotha stood has to lie outside it.",
+    scripture: ["Hebrews 13:12"],
+    focus: { t: [-330, 758, 130], d: 620, az: 3.5, el: 0.36 }
+  });
+  mat(0xcabd9e, 1);
+  wall(SECOND, 11, 5, true, 78);
+
+  mat(C_STONE, 1); conf(1);
+  place({ name: "The Gennath Gate", cat: "Gate", conf: 1,
+    facts: [["Found", "Avigad's Jewish Quarter excavations"], ["Meaning", "\u201cGarden Gate\u201d"]],
+    text: "The gate in the First Wall where the Second Wall began. Its name points to gardens outside — the same kind of ground, north-west of here, in which a new tomb was cut.",
+    scripture: ["John 19:41"], focus: { t: [-467, 762, -137], d: 210, az: 2.6, el: 0.25 } });
+  gateHouse(-467, -137, 0.1, 12, 15);
+  place({ name: "The Essene Gate", cat: "Gate", conf: 2,
+    facts: [["Excavated", "Pixner, Chen and Margalit, 1970s–80s"], ["Name", "disputed"]],
+    text: "A gate at the south-west corner of the circuit. The position is well established; whether an Essene quarter really sat inside it is argued both ways.",
+    scripture: [], focus: { t: [-700, 758, -620], d: 250, az: 2.2, el: 0.28 } });
+  gateHouse(-700, -620, -0.8, 11, 14);
+  place({ name: "The Sheep Gate", cat: "Gate", conf: 1,
+    facts: [["Near", "the Pool of Bethesda"], ["Traffic", "sacrificial animals, driven to the Temple"]],
+    text: "The gate through which flocks came up for sacrifice. John sets the healing of the paralysed man at the pool beside it.",
+    scripture: ["John 5:2", "Nehemiah 3:1"], focus: { t: [30, 752, 240], d: 210, az: 0.6, el: 0.26 } });
+  gateHouse(30, 236, 0, 11, 14);
+  place({ name: "The Fountain Gate", cat: "Gate", conf: 1, facts: [["Opens to", "Siloam and the Kidron"]],
+    text: "The southern gate onto the pool and the spring — the water route in and out of the Lower City.",
+    scripture: ["Nehemiah 3:15"], focus: { t: [-100, 656, -906], d: 220, az: 3.0, el: 0.26 } });
+  gateHouse(-100, -906, 0.25, 10, 12);
+  place({ name: "The Dung Gate", cat: "Gate", conf: 2, facts: [["Use", "refuse, carried out to the Hinnom"]],
+    text: "The small gate on the south-west, opening toward the valley where the city's rubbish burned — the valley whose name became a word for hell.",
+    scripture: ["Nehemiah 2:13"], focus: { t: [-360, 700, -822], d: 240, az: 2.7, el: 0.26 } });
+  gateHouse(-360, -822, 0.4, 9, 11);
+
+  // Herod's three towers
+  place({
+    name: "Phasael, Hippicus and Mariamne",
+    cat: "Towers", conf: 0,
+    facts: [["Phasael", "about 45 m — Herod's brother"], ["Hippicus", "about 40 m — a friend"], ["Mariamne", "about 27 m — the wife he executed"]],
+    text: "Three towers guarded the palace and the weak north-west corner. Titus left them standing after the siege to show what he had beaten. One massive base survives inside the Citadel — which of the three it is has been argued for a century.",
+    scripture: [],
+    focus: { t: [-756, 790, -108], d: 300, az: 2.1, el: 0.25 }
+  });
+  mat(C_STONE_L, 1);
+  var tg = ground(-790, -112);
+  boxAt(-806, -774, -128, -96, tg - 10, tg + 21); boxAt(-803, -777, -125, -99, tg + 21, tg + 45);
+  boxAt(-768, -742, -126, -100, tg - 10, tg + 18); boxAt(-765, -745, -123, -103, tg + 18, tg + 40);
+  boxAt(-736, -714, -124, -102, tg - 10, tg + 11); boxAt(-733, -717, -121, -105, tg + 11, tg + 27);
+}
+
+function buildGhostWall() {
+  layer("future");
+  place({
+    name: "The Third Wall — not yet built",
+    cat: "Later addition", conf: 2,
+    facts: [["Begun", "Agrippa I, about AD 41–44"], ["Finished", "hastily, during the revolt of AD 66"], ["In 30 AD", "open ground"]],
+    text: "Shown here only as a ghost. Everything it would later enclose — the northern suburb, and the quarry where Golgotha stood — lay outside the city at Passover in 30 AD. Reconstructions that draw this wall into the story of the crucifixion are a decade or more too early.",
+    scripture: [],
+    focus: { t: [-400, 780, 300], d: 1100, az: 3.2, el: 0.45 }
+  });
+  mat(0xe0c887, 1); alpha(0.30);
+  wall(THIRD, 9, 4.5, false, 0);
+  alpha(1);
+}
+
+/* ---------- 4c. palaces, civic and Gospel sites ---------- */
+function buildCivic() {
+  layer("civic");
+
+  place({
+    name: "Herod's Palace",
+    cat: "Palace / Praetorium", conf: 0,
+    facts: [["Platform", "about 330 × 130 m"], ["Wings", "the Caesareum and the Agrippeum"], ["Later", "residence of the Roman prefect"]],
+    text: "Two vast banqueting wings set in gardens with canals and bronze fountains, on a raised platform behind its own wall. After Herod it became the governor's Jerusalem residence — which is why most scholars now read John's \u201cpraetorium\u201d as this place rather than the Antonia. The pavement outside would then be here, on the west.",
+    scripture: ["John 18:28–19:16", "Mark 15:1–15"],
+    focus: { t: [-756, 786, -300], d: 450, az: 2.2, el: 0.32 }
+  });
+  mat(C_STONE_L, 1);
+  prism([[-822,-470],[-690,-470],[-690,-150],[-822,-150]], 700, 772);
+  mat(C_PLASTER, 6);
+  boxAt(-816, -742, -290, -172, 772, 792);
+  boxAt(-740, -696, -286, -188, 772, 789);
+  boxAt(-816, -750, -456, -362, 772, 791);
+  boxAt(-742, -696, -444, -362, 772, 787);
+  mat(C_ROOF2, 6);
+  boxAt(-818, -740, -292, -170, 792, 793.6);
+  boxAt(-818, -748, -458, -360, 791, 792.6);
+  mat(C_MARBLE, 0);
+  colonnade(-812, -302, -700, -302, 8, 1, 0, 772, 8.5, 0.8);
+  colonnade(-812, -352, -700, -352, 8, 1, 0, 772, 8.5, 0.8);
+  mat(0x3f7a72, 3);
+  water(-800, -736, -344, -312, 772.4);
+  mat(C_STONE_D, 1);
+  boxAt(-804, -732, -348, -344, 771, 773); boxAt(-804, -732, -312, -308, 771, 773);
+  boxAt(-804, -800, -348, -308, 771, 773); boxAt(-736, -732, -348, -308, 771, 773);
+
+  place({
+    name: "The Hasmonean Palace",
+    cat: "Palace", conf: 2,
+    facts: [["Looks out on", "the Temple courts, across the valley"], ["Remains", "none found"]],
+    text: "The old royal house of the Maccabees, still standing and still used by the Herodian family when they came up to the city. Nothing of it has ever been excavated — its position here follows Josephus and nothing else. Antipas was most likely lodged here when Pilate sent Jesus across to him.",
+    scripture: ["Luke 23:6–12"],
+    focus: { t: [-386, 762, -46], d: 260, az: 2.5, el: 0.3 }
+  });
+  mat(C_PLASTER, 6);
+  var hp = ground(-386, -46);
+  boxAt(-428, -344, -84, -8, hp - 12, hp + 17);
+  boxAt(-414, -358, -70, -22, hp + 17, hp + 25);
+  mat(C_ROOF2, 6); boxAt(-430, -342, -86, -6, hp + 17, hp + 18.6);
+
+  place({
+    name: "The Xystus and the Council House",
+    cat: "Civic", conf: 2,
+    facts: [["Xystus", "a colonnaded public plaza"], ["Boule", "where the city council met"]],
+    text: "A paved and colonnaded square at the head of the bridge, used for public assemblies, with the council chamber beside it. Josephus traces the First Wall through both.",
+    scripture: [],
+    focus: { t: [-300, 752, -60], d: 220, az: 2.9, el: 0.28 }
+  });
+  mat(C_MARBLE, 0);
+  var xg = ground(-300, -58);
+  colonnade(-336, -92, -264, -92, 7.5, 1, 0, xg, 7.5, 0.75);
+  colonnade(-336, -26, -264, -26, 7.5, 1, 0, xg, 7.5, 0.75);
+  mat(C_STONE_L, 1); boxAt(-340, -260, -96, -22, xg - 8, xg + 0.6);
+  mat(C_PLASTER, 6); boxAt(-262, -232, -78, -46, xg - 8, xg + 13);
+
+  place({
+    name: "The Palatial Mansion",
+    cat: "Priestly house", conf: 0,
+    facts: [["Floor area", "about 600 m² over two storeys"], ["Reception hall", "10 × 6.4 m, frescoed"], ["Found", "Avigad, Jewish Quarter"]],
+    text: "The grandest house yet dug in the Upper City: courtyard, mosaics, Pompeian-style frescoes, its own ritual baths, and a view straight down onto the Temple. This is how a high-priestly family lived — and it is the calibre of house the Gospels put Annas and Caiaphas in.",
+    scripture: ["John 18:12–24"],
+    focus: { t: [-430, 768, -186], d: 190, az: 2.4, el: 0.3 }
+  });
+  mat(C_PLASTER, 6);
+  var pm = ground(-430, -186);
+  boxAt(-452, -408, -204, -168, pm - 10, pm + 13);
+  boxAt(-446, -424, -198, -180, pm + 13, pm + 19);
+  mat(C_ROOF2, 6); boxAt(-454, -406, -206, -166, pm + 13, pm + 14.4);
+  mat(C_PLASTER, 6);
+  var bh = ground(-472, -214);
+  boxAt(-482, -462, -224, -204, bh - 8, bh + 8.5);
+  mat(C_ROOF2, 6); boxAt(-484, -460, -226, -202, bh + 8.5, bh + 9.7);
+
+  // Gospel sites in the Upper City
+  place({
+    name: "The Upper Room",
+    cat: "Gospel site", conf: 1,
+    facts: [["Tradition", "Mount Zion, from at least the 4th century"], ["Standing building", "medieval"]],
+    text: "A large upstairs room, furnished and ready, in the Upper City. The location tradition is old and consistent even though the building above it is not. The same room is where the disciples were staying when Pentecost came.",
+    scripture: ["Mark 14:12–26", "Luke 22:7–38", "Acts 1:13", "Acts 2:1–4"],
+    focus: { t: [-616, 776, -664], d: 210, az: 2.4, el: 0.28 }
+  });
+  mat(C_PLASTER, 6);
+  var cn = ground(-616, -664);
+  boxAt(-632, -600, -680, -648, cn - 10, cn + 9);
+  boxAt(-628, -604, -676, -652, cn + 9, cn + 17);
+  mat(C_ROOF2, 6); boxAt(-630, -602, -678, -650, cn + 17, cn + 18.4);
+
+  place({
+    name: "The House of Caiaphas",
+    cat: "Gospel site", conf: 2,
+    facts: [["Two candidates", "St Peter in Gallicantu, or higher on Mount Zion"], ["Certain", "somewhere in the Upper City"]],
+    text: "Jesus was taken first to Annas, then to Caiaphas, and held overnight in a high-priestly house on this hill. Which house is genuinely open: the eastern-slope site has an ancient stepped street running past it, the Mount Zion site has the older tradition. Peter's denials happened in the courtyard, within earshot.",
+    scripture: ["Matthew 26:57–75", "John 18:12–27", "Luke 22:54–62"],
+    focus: { t: [-449, 738, -609], d: 220, az: 2.1, el: 0.28 }
+  });
+  mat(C_PLASTER, 6);
+  var cf = ground(-449, -609);
+  boxAt(-468, -430, -626, -592, cf - 12, cf + 12);
+  boxAt(-462, -440, -620, -600, cf + 12, cf + 18);
+  mat(C_ROOF2, 6); boxAt(-470, -428, -628, -590, cf + 12, cf + 13.4);
+  mat(C_STONE_D, 1); boxAt(-430, -412, -620, -598, cf - 12, cf + 0.6);
+
+  place({
+    name: "Golgotha",
+    cat: "Gospel site", conf: 1,
+    facts: [["Ground", "a limestone quarry abandoned centuries earlier"], ["The rock", "a rounded outcrop the quarrymen rejected"], ["First Wall", "about 210 m to the south — the city starts there"], ["Second Wall", "about 145 m to the east — the quarry is outside it"], ["Praetorium", "about 280 m south-west, inside the wall"], ["The road", "runs past the foot of the rock"]],
+    text: "Excavation under the Church of the Holy Sepulchre found a quarry worked out long before the first century and then reused as a garden. Left standing in the middle of it was a rounded hump of cracked, unusable rock the quarrymen had cut around and walked away from. A rejected stone, in full view of the road, just outside the gate. The walk from the praetorium is under 300 m: north out of the Gennath Gate, then left along the wall.",
+    scripture: ["John 19:17–20", "Matthew 27:33–37", "Hebrews 13:12", "Psalm 118:22"],
+    focus: { t: [-566, 766, 79], d: 210, az: 2.35, el: 0.20 }
+  });
+  var gq = ground(-566, 79);
+  mat(C_ROCK, 6);
+  dome(-566, gq - 3.0, 79, 19, 15.5, 9.0, 18, 6);
+  mat(C_ROCK_D, 6);
+  dome(-559, gq + 3.4, 85, 8, 6.5, 3.6, 12, 4);
+  dome(-575, gq + 2.6, 72, 6, 5.5, 2.6, 10, 3);
+
+  place({
+    name: "The garden tomb",
+    cat: "Gospel site", conf: 1,
+    facts: [["Cut into", "the quarry scarp, in its own hillside"], ["From Golgotha", "about 90 m here; the excavated tombs lie some 40 m from the rock"], ["Doorway", "low — you stoop to look in"], ["Sealed by", "a disc of stone running in a cut channel"], ["Type", "rock-cut, unused, first century"]],
+    text: "The same quarry face carries tombs cut into its standing rock. John says the tomb was new, in a garden, and near enough that they could use it because the sabbath was coming on. The blocking stone was a disc set in a channel across the front — heavy to roll uphill into place, and the thing the women were worrying about on the way there.",
+    scripture: ["John 19:41–42", "John 20:1–9", "Matthew 27:59–60", "Mark 16:3–4"],
+    focus: { t: [-616, 762, 134], d: 115, az: 1.62, el: 0.13 }
+  });
+  var th = ground(-628, 135);
+  mat(C_ROCK, 6);
+  dome(-652, th - 5, 141, 32, 27, 12, 18, 5);
+  mat(C_ROCK_D, 6);
+  boxAt(-634, -620, 110, 131, th - 9, th + 8.5);      // scarp, south of the door
+  boxAt(-634, -620, 138, 160, th - 9, th + 8.5);      // scarp, north of the door
+  boxAt(-634, -620, 131, 138, th + 2.3, th + 8.5);    // lintel over the opening
+  mat(0x241f19, 0);
+  boxAt(-633, -620.6, 131.5, 137.5, th - 0.8, th + 2.3);
+  mat(0xcabb99, 6);
+  boxAt(-621.5, -618.4, 112, 158, th - 1.3, th - 0.4); // the channel the stone runs in
+  mat(0xbdae8c, 6);
+  discX(-619.3, th + 1.4, 146.5, 1.9, 0.55, 16);
+  mat(C_ROAD, 1);
+  boxAt(-618, -600, 122, 148, th - 3, th - 0.5);       // forecourt
+
+  // the garden the quarry became
+  var rgd = mulberry(6161);
+  for (var gt = 0; gt < 16; gt++) {
+    var gx = -640 + rgd() * 110, gz = 40 + rgd() * 110;
+    if (Math.hypot(gx + 566, gz - 79) < 26 || Math.hypot(gx + 640, gz - 138) < 34) continue;
+    tree(gx, gz, ground(gx, gz), 0.85 + rgd() * 0.45, rgd() < 0.5 ? 0x7a8759 : 0x6c7b47);
+  }
+  mat(C_STONE_D, 1);
+  wall([[-676,20],[-500,26],[-486,132],[-520,196],[-660,190],[-676,20]], 2.0, 1.2, false, 0);
+
+  // Kidron tombs
+  place({
+    name: "The Kidron monuments",
+    cat: "Tombs", conf: 0,
+    facts: [["Includes", "the so-called Tomb of Absalom and Tomb of Zechariah"], ["Cut", "1st century BC – 1st century AD"]],
+    text: "Rock-cut tombs and free-standing monuments line the Kidron slope below the Temple, in the full view of everyone walking up from Bethany. Jesus called such tombs whitewashed on the outside.",
+    scripture: ["Matthew 23:27"],
+    focus: { t: [340, 660, -110], d: 220, az: 1.2, el: 0.24 }
+  });
+  mat(C_STONE_L, 1);
+  var k1 = ground(346, -93);
+  boxAt(338, 354, -101, -85, k1 - 6, k1 + 9); cyl(346, k1 + 9, -93, 6.2, 4.6, 5, 8); cone(346, k1 + 14, -93, 4.6, 6, 8);
+  var k2 = ground(352, -140);
+  boxAt(345, 359, -147, -133, k2 - 5, k2 + 8); cone(352, k2 + 8, -140, 7.2, 8.5, 4);
+
+  // aqueduct
+  place({
+    name: "The low-level aqueduct",
+    cat: "Water supply", conf: 0,
+    facts: [["From", "Solomon's Pools, south of Bethlehem"], ["Length", "about 21.5 km"], ["Fall", "roughly 30 m in total"]],
+    text: "A channel cut with a gradient of about one part in seven hundred, running twenty-one kilometres round the contours to reach the Temple with water for the courts and the ritual baths. It crosses the Hinnom on arches and enters the Mount on the bridge.",
+    scripture: [],
+    focus: { t: [-800, 730, -540], d: 420, az: 2.5, el: 0.22 }
+  });
+  mat(C_STONE_D, 1);
+  var aq = [[-930,-470],[-860,-520],[-780,-566],[-700,-600]];
+  for (var ai = 0; ai < aq.length - 1; ai++) {
+    var A = aq[ai], B = aq[ai + 1], nA = 6;
+    for (var q = 0; q <= nA; q++) {
+      var tt = q / nA, ax = A[0] + (B[0]-A[0])*tt, az2 = A[1] + (B[1]-A[1])*tt;
+      var gy2 = ground(ax, az2), topY = 700 - ai * 3;
+      if (topY - gy2 > 2) box(ax, (gy2 + topY) / 2 - 3, az2, 4.5, topY - gy2 + 6, 4.5, 0, AOB);
+    }
+    box((A[0]+B[0])/2, 701.6 - ai*3, (A[1]+B[1])/2, Math.hypot(B[0]-A[0], B[1]-A[1]), 3.2, 5.5, Math.atan2(B[0]-A[0], B[1]-A[1]), AOM);
+  }
+}
+
+/* ---------- 4d. water ---------- */
+function buildWater() {
+  layer("water");
+
+  place({
+    name: "The Pool of Siloam",
+    cat: "Pool", conf: 0,
+    facts: [["Found", "2004, by a broken sewer pipe"], ["Shape", "trapezoidal, about 69 m across"], ["Steps", "on at least three sides"]],
+    text: "Not a small basin but a monumental stepped pool at the foot of the pilgrim road — the place where pilgrims immersed before walking up to the Temple. Jesus sent a blind man down here to wash, and the man came back seeing.",
+    scripture: ["John 9:1–12", "Isaiah 8:6"],
+    focus: { t: [-30, 646, -830], d: 200, az: 2.9, el: 0.3 }
+  });
+  pool(-64, 4, -864, -796, 636.0, 633.2, 638.6);
+  mat(C_STONE_L, 1);
+  for (var st = 0; st < 4; st++) {
+    var ins = st * 2.7, yt = 637.9 - st * 1.15;
+    ring(-64 + ins, 4 - ins, -864 + ins, -796 - ins, yt - 1.2, yt, 2.7);
+  }
+
+  place({
+    name: "The Pool of Bethesda",
+    cat: "Pool", conf: 0,
+    facts: [["Two basins", "divided by a central wall"], ["Porticoes", "four around, one on the divider — five"], ["Depth", "about 13 m"]],
+    text: "For a long time John's five covered colonnades looked like invention. Then the site was excavated and there were two great basins with a wall between them — four porches around the outside and a fifth along the divider. A man who had been ill thirty-eight years was lying here.",
+    scripture: ["John 5:1–15"],
+    focus: { t: [73, 742, 415], d: 265, az: 0.7, el: 0.30 }
+  });
+  mat(0xd7cbad, 1);
+  ring(12, 134, 352, 478, 723, 741.8, 6);
+  boxAt(18, 128, 358, 408, 727.2, 728.6);
+  boxAt(18, 128, 422, 472, 727.2, 728.6);
+  mat(C_STONE_L, 1);
+  boxAt(18, 128, 408, 422, 723, 741.8);
+  mat(0x3f7a72, 3);
+  water(18, 128, 358, 408, 734.5);
+  water(18, 128, 422, 472, 734.5);
+  mat(C_MARBLE, 0);
+  colonnade(-2, 340, 146, 340, 8, 1, 0, 741.0, 6.5, 0.65);
+  colonnade(-2, 490, 146, 490, 8, 1, 0, 741.0, 6.5, 0.65);
+  colonnade(-2, 346, -2, 484, 8, 1, 0, 741.0, 6.5, 0.65);
+  colonnade(146, 346, 146, 484, 8, 1, 0, 741.0, 6.5, 0.65);
+  colonnade(18, 415, 128, 415, 8, 1, 0, 741.8, 6.5, 0.65);
+  mat(C_ROOF2, 6);
+  boxAt(-10, 154, 336, 344, 747.5, 749.1);
+  boxAt(-10, 154, 486, 494, 747.5, 749.1);
+  boxAt(-10, 4, 344, 486, 747.5, 749.1);
+  boxAt(140, 154, 344, 486, 747.5, 749.1);
+  boxAt(14, 132, 409, 421, 748.3, 749.9);
+
+  place({
+    name: "The Struthion Pool",
+    cat: "Reservoir", conf: 0,
+    facts: [["Size", "about 52 × 14 m"], ["In 30 AD", "open to the sky"]],
+    text: "A rock-cut reservoir in the ditch below the Antonia. Hadrian vaulted it over a century later and paved above it — which is why the flagstones often shown as the pavement of Pilate's trial are too late to be that pavement.",
+    scripture: [],
+    focus: { t: [-215, 752, 300], d: 200, az: 3.7, el: 0.3 }
+  });
+  pool(-244, -192, 288, 302, 741.0, 738.0, 745.8);
+
+}
+
+/* ---------- 4e. houses, roads, districts ---------- */
+// Josephus, War 5.136: the city stood on two hills "and have a valley to divide
+// them asunder; at which valley the corresponding rows of houses on both hills end."
+// So both districts run right down to the floor of the Tyropoeon.
+var UPPER = [
+  [-782,-134],[-700,-139],[-620,-144],[-560,-149],[-467,-151],[-380,-144],[-300,-124],
+  [-234,-90],[-201,-180],[-184,-262],[-163,-344],[-144,-420],[-126,-500],
+  [-103,-580],[-79,-660],[-64,-736],
+  [-170,-798],[-300,-822],[-440,-772],[-560,-716],[-660,-644],[-736,-544],[-782,-450],[-800,-352],[-796,-224]
+];
+var LOWER = [
+  [-125,-358],[-40,-358],[68,-362],
+  [46,-434],[32,-520],[20,-616],[10,-712],[-6,-788],[-22,-812],
+  [-30,-770],[-47,-660],[-71,-580],[-94,-500],[-112,-420]
+];
+var NORTH = [[-452,-110],[-436,20],[-406,116],[-378,196],[-330,262],[-250,290],[-206,268],[-200,140],[-236,20],[-300,-96]];
+var OPHEL = [[-154,-248],[70,-248],[74,-346],[-131,-346]];
+var BEZ   = [[-380,330],[-180,400],[-40,430],[60,380],[-60,540],[-260,560],[-400,470]];
+var EXCL  = [
+  [-836,-482,-682,-140],  // Herod's palace platform
+  [-350,-100,-230,-10],   // Hasmonean palace
+  [-470,-215,-400,-160],  // Palatial Mansion and Burnt House
+  [-500,-96,-260,-8],     // the Xystus, Council House and bridge head
+  [-650,-690,-590,-640],  // the Cenacle
+  [-480,-632,-420,-582],  // the house of Caiaphas
+  [-120,-320,-20,-238],   // the southern steps
+  [0,-306,60,-238],       // the Triple Gate stair
+  [-20,326,160,506],      // the Bethesda precinct
+  [-80,-880,20,-786]      // Siloam
+];
+
+function excluded(x, z) {
+  for (var i = 0; i < EXCL.length; i++) {
+    var e = EXCL[i];
+    if (x > e[0] && x < e[2] && z > e[1] && z < e[3]) return true;
+  }
+  return false;
+}
+function district(poly, spacing, seed, minH, maxH, storeyChance) {
+  var rnd = mulberry(seed);
+  var minX = 1e9, maxX = -1e9, minZ = 1e9, maxZ = -1e9;
+  for (var i = 0; i < poly.length; i++) {
+    minX = Math.min(minX, poly[i][0]); maxX = Math.max(maxX, poly[i][0]);
+    minZ = Math.min(minZ, poly[i][1]); maxZ = Math.max(maxZ, poly[i][1]);
+  }
+  var n = 0;
+  for (var z = minZ; z <= maxZ; z += spacing) {
+    for (var x = minX; x <= maxX; x += spacing) {
+      var px = x + (rnd() - 0.5) * spacing * 0.72;
+      var pz = z + (rnd() - 0.5) * spacing * 0.72;
+      if (!inPoly(px, pz, poly) || excluded(px, pz)) { rnd(); rnd(); rnd(); continue; }
+      var g = ground(px, pz);
+      var w = spacing * (0.45 + rnd() * 0.32), d = spacing * (0.45 + rnd() * 0.32);
+      var h = minH + rnd() * (maxH - minH);
+      var ry = (rnd() - 0.5) * 0.5;
+      var tone = 0.9 + rnd() * 0.2;
+      mat(shade(C_PLASTER, tone), 6);
+      box(px, g + h / 2 - 5, pz, w, h + 10, d, ry, AOB);
+      mat(shade(C_ROOF2, tone), 6);
+      box(px, g + h + 0.35, pz, w + 0.9, 0.7, d + 0.9, ry, AOM);
+      box(px, g + h + 1.1, pz, w + 0.9, 0.8, 0.7, ry, AOM);
+      box(px, g + h + 1.1, pz, 0.7, 0.8, d + 0.9, ry, AOM);
+      if (rnd() < storeyChance) {
+        var w2 = w * 0.62, d2 = d * 0.62;
+        mat(shade(C_PLASTER, tone * 1.03), 6);
+        box(px + w * 0.1, g + h + 2.4, pz - d * 0.08, w2, 4.2, d2, ry, AOM);
+        mat(shade(C_ROOF2, tone), 6);
+        box(px + w * 0.1, g + h + 4.7, pz - d * 0.08, w2 + 0.7, 0.6, d2 + 0.7, ry, AOM);
+      }
+      n++;
+    }
+  }
+  return n;
+}
+function shade(hex, f) {
+  var r = clamp(Math.round(((hex >> 16) & 255) * f), 0, 255);
+  var g = clamp(Math.round(((hex >> 8) & 255) * f), 0, 255);
+  var b = clamp(Math.round((hex & 255) * f), 0, 255);
+  return (r << 16) | (g << 8) | b;
+}
+function roadPath(pts, w, stepped) {
+  for (var i = 0; i < pts.length - 1; i++) {
+    var a = pts[i], b = pts[i + 1];
+    var L = Math.hypot(b[0]-a[0], b[1]-a[1]);
+    var n = Math.max(1, Math.round(L / (stepped ? 5 : 12)));
+    for (var s = 0; s < n; s++) {
+      var t0 = (s + 0.5) / n;
+      var x = a[0] + (b[0]-a[0]) * t0, z = a[1] + (b[1]-a[1]) * t0;
+      var g = ground(x, z);
+      box(x, g + 0.35, z, w, 0.9, L / n * 1.06, Math.atan2(b[0]-a[0], b[1]-a[1]), AOM);
+    }
+  }
+}
+
+function buildCity() {
+  layer("city");
+
+  var idUpper = place({
+    name: "The Upper City",
+    cat: "District", conf: 0,
+    facts: [["Where", "the Western Hill — today's Jewish and Armenian Quarters, and Mount Zion"], ["Ground", "the highest in Jerusalem, about 770 m"], ["Josephus calls it", "the Upper Market — and, wrongly, King David's citadel"], ["Residents", "priestly and aristocratic families"]],
+    text: "The wealthy quarter, on the higher of the city's two hills, looking across the valley at the Temple it served. Plastered walls, frescoes, mosaic floors, private ritual baths and cisterns. Josephus thought this hill was David's city; it was not — he had the wrong ridge. Everything you see here burned in AD 70, and the ash is what preserved it.",
+    scripture: [],
+    focus: { t: [-560, 775, -300], d: 620, az: 2.3, el: 0.36 }
+  });
+  district(UPPER, MOBILE ? 28 : 23, 1234, 7, 12, 0.55);
+
+  place({
+    name: "The Lower City",
+    cat: "District", conf: 0,
+    facts: [["Where", "the Eastern Hill, south of the Temple Mount — the City of David"], ["Josephus calls it", "the Acra, shaped like a moon when she is horned"], ["Ground", "falls about 60 m from north to south"], ["Houses", "small, tight, stepped down the slope"]],
+    text: "The oldest inhabited ground in Jerusalem, packed onto a narrow spur above two valleys — the lower of the two hills the city was built on. Ordinary households, one or two rooms round a yard, stacked down the slope toward Siloam. Josephus says the rows of houses on both hills ran down until they met in the valley between, and that is how they are laid out here.",
+    scripture: ["2 Samuel 5:7"],
+    focus: { t: [-60, 690, -560], d: 560, az: 2.9, el: 0.34 }
+  });
+  district(LOWER, 20, 8712, 5, 8.5, 0.28);
+
+  place({
+    name: "The northern quarter",
+    cat: "District", conf: 1,
+    facts: [["Enclosed by", "the Second Wall"], ["Trade", "markets, workshops, the wool and timber sellers"]],
+    text: "The working quarter between the old wall and the Antonia — markets, craft workshops, and the traffic of a city that trebled in size at every pilgrim feast.",
+    scripture: [],
+    focus: { t: [-320, 760, 120], d: 520, az: 3.4, el: 0.35 }
+  });
+  district(NORTH, 26, 5521, 6, 10, 0.4);
+
+  place({
+    name: "The Ophel",
+    cat: "District", conf: 0,
+    facts: [["Between", "the south wall and the City of David"], ["Full of", "ritual baths for arriving pilgrims"]],
+    text: "The shelf of ground immediately below the Temple's southern stairs, dense with the immersion pools every pilgrim used before going up.",
+    scripture: [],
+    focus: { t: [-40, 715, -300], d: 300, az: 3.0, el: 0.3 }
+  });
+  district(OPHEL, 19, 3391, 4.5, 7.5, 0.15);
+
+  place({
+    name: "Bezetha, the new suburb",
+    cat: "District", conf: 1,
+    facts: [["Position", "north, outside the walls in 30 AD"], ["Enclosed", "only from about AD 41 onward"]],
+    text: "Spillover housing spreading over the northern hill, still unwalled at this date. Agrippa's Third Wall would eventually take it in.",
+    scripture: [],
+    focus: { t: [-220, 770, 440], d: 560, az: 3.4, el: 0.36 }
+  });
+  district(BEZ, 34, 771, 5, 8, 0.2);
+
+  place({
+    name: "The Pilgrimage Road",
+    cat: "Street", conf: 0,
+    facts: [["Length", "about 600 m"], ["Width", "about 7.5 m, houses on both sides"], ["Dated by", "coins under the paving — laid under Pontius Pilate, AD 30–40"], ["Runs", "Siloam up to the Temple"]],
+    text: "A stepped, paved street climbing the valley from the Pool of Siloam to the foot of the Temple's south-west corner. Anyone coming to the feast washed at the bottom and walked up this way. Long credited to Herod — until coins beneath the slabs dated it to Pilate's own governorship. At this Passover it is either newly finished or still being laid.",
+    scripture: ["Psalm 122:1–4"],
+    focus: { t: [-90, 690, -520], d: 420, az: 2.9, el: 0.3 }
+  });
+  mat(C_ROAD, 1);
+  roadPath([[-36,-796],[-58,-700],[-78,-600],[-98,-500],[-116,-410],[-128,-330],[-150,-268],[-172,-232]], 8.5, true);
+  mat(C_ROAD, 1);
+  roadPath([[-166,-64],[-260,-90],[-380,-118],[-500,-130],[-620,-132],[-720,-124]], 7, false);
+  roadPath([[-40,-250],[-120,-230],[-176,-220]], 7, false);
+  roadPath([[-436,-586],[-400,-648],[-352,-706],[-286,-762],[-206,-812],[-118,-846],[-52,-852]], 6, true);
+  // out of the Gennath Gate, hugging the outside of the Second Wall, past the quarry
+  roadPath([[-467,-137],[-490,-80],[-506,-20],[-516,40],[-520,100],[-530,168],[-550,228],[-574,286]], 6.5, false);
+  roadPath([[-522,122],[-556,140],[-590,140],[-606,136]], 4.5, false);
+}
+
+/* ---------- 4f. trees and gardens ---------- */
+function buildNature() {
+  layer("nature");
+
+  place({
+    name: "Gethsemane",
+    cat: "Gospel site", conf: 1,
+    facts: [["Name", "\u201coil press\u201d"], ["Position", "across the Kidron, at the foot of Olivet"], ["Ground", "an enclosed olive grove"]],
+    text: "A walled olive grove on the far side of the ravine, close enough to reach in the dark after supper and far enough to be alone. Jesus prayed here, and here Judas came with the lanterns and the detachment.",
+    scripture: ["Matthew 26:36–56", "Mark 14:32–52", "Luke 22:39–53", "John 18:1–12"],
+    focus: { t: [375, 700, 192], d: 220, az: 1.1, el: 0.22 }
+  });
+  var rg = mulberry(9099);
+  mat(C_STONE_D, 1);
+  wall([[330,150],[424,152],[428,232],[334,230],[330,150]], 2.4, 1.4, false, 0);
+  for (var i = 0; i < 42; i++) {
+    var gx = 336 + rg() * 84, gz = 158 + rg() * 66;
+    tree(gx, gz, ground(gx, gz), 1.15 + rg() * 0.5, 0x7d8a5a);
+  }
+
+  place({
+    name: "The Mount of Olives",
+    cat: "Ridge", conf: 0,
+    facts: [["Summit", "about 818 m — some 80 m above the Temple"], ["Over the crest", "Bethphage, then Bethany"], ["Slopes", "olive groves and tombs"]],
+    text: "The ridge east of the city, and the road in from Jericho. From the descent you get the whole Temple at once, which is why the Triumphal Entry comes this way and why the disciples stop here to admire the stones just before Jesus tells them not one will be left on another.",
+    scripture: ["Luke 19:28–44", "Mark 13:1–4", "Zechariah 14:4", "Acts 1:9–12"],
+    focus: { t: [700, 780, 90], d: 760, az: 1.15, el: 0.3 }
+  });
+  var ro = mulberry(4242), n = 0;
+  var wantTrees = MOBILE ? 320 : 620;
+  while (n < wantTrees) {
+    var x = 420 + ro() * 900, z = -420 + ro() * 900;
+    var g = ground(x, z);
+    if (g < 655) continue;
+    var s = 0.85 + ro() * 0.55;
+    tree(x, z, g, s, ro() < 0.75 ? 0x77855a : 0x66763f);
+    n++;
+  }
+  // Kidron slope and Hinnom scrub
+  var rk = mulberry(1717), m = 0, want2 = MOBILE ? 120 : 240;
+  while (m < want2) {
+    var x2 = -900 + rk() * 1200, z2 = -960 + rk() * 500;
+    var g2 = ground(x2, z2);
+    if (g2 > 700 || g2 < 600) continue;
+    if (inPoly(x2, z2, LOWER) || inPoly(x2, z2, UPPER)) continue;
+    tree(x2, z2, g2, 0.7 + rk() * 0.4, 0x6d7a4c);
+    m++;
+  }
+  // palace gardens
+  var rp = mulberry(31), p = 0;
+  while (p < 60) {
+    var x3 = -818 + rp() * 126, z3 = -292 + rp() * 314;
+    if (x3 > -818 && x3 < -690 && z3 > -292 && z3 < -160 && rp() < 0.7) { p++; continue; }
+    var y3 = 772;
+    if (rp() < 0.4) { mat(0x4d6b3d, 4); cyl(x3, y3, z3, 1.1, 0.9, 6.5, 5); cone(x3, y3 + 6, z3, 1.9, 7, 6); }
+    else tree(x3, z3, y3, 0.8 + rp() * 0.4, 0x6f7f4e);
+    p++;
+  }
+}
+
+/* ---------- 4g. terrain mesh ---------- */
+var terrVerts = null, terrIdx = null;
+function buildTerrainMesh() {
+  var n = NX * NZ;
+  var buf = new ArrayBuffer(n * 36);
+  var f = new Float32Array(buf), u = new Uint8Array(buf);
+  for (var j = 0; j < NZ; j++) {
+    for (var i = 0; i < NX; i++) {
+      var k = j * NX + i, o9 = k * 9, o36 = k * 36;
+      var x = X0 + i * CELL, z = Z0 + j * CELL, y = HGT[k];
+      var hl = HGT[j * NX + Math.max(0, i - 1)], hr = HGT[j * NX + Math.min(NX - 1, i + 1)];
+      var hd = HGT[Math.max(0, j - 1) * NX + i], hu = HGT[Math.min(NZ - 1, j + 1) * NX + i];
+      var nx = hl - hr, ny = 2 * CELL, nz = hu - hd;   // z mirrored, as in tri()
+      var L = Math.hypot(nx, ny, nz) || 1;
+      // fade the outer border down so the world edge is not a cliff
+      var edge = Math.min(Math.min(i, NX - 1 - i), Math.min(j, NZ - 1 - j)) / 9;
+      if (edge < 1) y = lerp(y - 24, y, edge);
+      f[o9] = x; f[o9 + 1] = y; f[o9 + 2] = -z;
+      f[o9 + 3] = nx / L; f[o9 + 4] = ny / L; f[o9 + 5] = nz / L;
+      u[o36 + 24] = 255; u[o36 + 25] = 255; u[o36 + 26] = 255; u[o36 + 27] = 255;
+      u[o36 + 28] = 0; u[o36 + 29] = 0; u[o36 + 30] = 0; u[o36 + 31] = 255;
+      u[o36 + 32] = 2; u[o36 + 33] = 0; u[o36 + 34] = 255; u[o36 + 35] = 0;
+    }
+  }
+  terrVerts = buf;
+  var idx = new Uint16Array((NX - 1) * (NZ - 1) * 6), p = 0;
+  for (var jj = 0; jj < NZ - 1; jj++) for (var ii = 0; ii < NX - 1; ii++) {
+    var a = jj * NX + ii, b = a + 1, c = a + NX, d = c + 1;
+    idx[p++] = a; idx[p++] = c; idx[p++] = b;
+    idx[p++] = b; idx[p++] = c; idx[p++] = d;
+  }
+  terrIdx = idx;
+}
+
+/* ============================================================
+   5. WEBGL
+   ============================================================ */
+var MOBILE = Math.min(window.innerWidth, window.innerHeight) < 700 ||
+             /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+var gl = null, prog = null, loc = {}, vbo = null, tvbo = null, tibo = null;
+var pickFB = null, pickTex = null, pickRB = null, pickW = 0, pickH = 0;
+var vertCount = 0;
+
+var VS = [
+"attribute vec3 aPos; attribute vec3 aNor; attribute vec4 aCol; attribute vec4 aId; attribute vec4 aMeta;",
+"uniform mat4 uP, uV;",
+"varying vec3 vN; varying vec3 vW; varying vec4 vC; varying vec3 vId; varying vec3 vM;",
+"void main(){",
+"  vN = aNor; vW = aPos; vC = aCol; vId = aId.rgb; vM = aMeta.rgb;",
+"  gl_Position = uP * uV * vec4(aPos, 1.0);",
+"}"].join("\n");
+
+var FS = [
+"precision highp float;",
+"varying vec3 vN; varying vec3 vW; varying vec4 vC; varying vec3 vId; varying vec3 vM;",
+"uniform vec3 uSun, uSunCol, uSky, uGnd, uFog, uCam, uSel, uHov;",
+"uniform float uPick, uConf, uTime, uFogD;",
+"float h21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123); }",
+"void main(){",
+"  if (uPick > 0.5) { gl_FragColor = vec4(vId, 1.0); return; }",
+"  vec3 N = dot(vN, vN) > 1e-8 ? normalize(vN) : vec3(0.0, 1.0, 0.0);",
+"  if (!gl_FrontFacing) N = -N;",
+"  vec3 base = vC.rgb;",
+"  float style = floor(vM.x * 255.0 + 0.5);",
+"  float spec = 0.0, shin = 24.0, emit = 0.0;",
+"  if (style > 0.5 && style < 1.5) {",
+"    float u = abs(N.x) > abs(N.z) ? vW.z : vW.x;",
+"    float row = floor(vW.y / 1.15);",
+"    float off = mod(row, 2.0) * 1.3;",
+"    float fy = fract(vW.y / 1.15);",
+"    float fu = fract((u + off) / 2.6);",
+"    float m = smoothstep(0.0, 0.07, fy) * smoothstep(0.0, 0.07, 1.0 - fy)",
+"            * smoothstep(0.0, 0.04, fu) * smoothstep(0.0, 0.04, 1.0 - fu);",
+"    float blk = h21(vec2(floor((u + off) / 2.6), row));",
+"    base *= mix(0.80, 1.0, m) * (0.94 + 0.12 * blk);",
+"  } else if (style > 1.5 && style < 2.5) {",
+"    float slope = 1.0 - N.y;",
+"    float nz = h21(floor(vW.xz * 0.32)) * 0.6 + h21(floor(vW.xz * 1.7)) * 0.4;",
+"    vec3 soil = vec3(0.55, 0.56, 0.39);",
+"    vec3 dry  = vec3(0.74, 0.70, 0.53);",
+"    vec3 rock = vec3(0.76, 0.70, 0.57);",
+"    base = mix(soil, dry, smoothstep(630.0, 790.0, vW.y));",
+"    base = mix(base, rock, smoothstep(0.10, 0.42, slope));",
+"    base *= 0.86 + 0.26 * nz;",
+"  } else if (style > 2.5 && style < 3.5) {",
+"    float w = sin(vW.x * 0.33 + uTime * 1.1) * 0.5 + sin(vW.z * 0.41 - uTime * 0.85) * 0.5;",
+"    base *= 0.93 + 0.10 * w; spec = 0.6; shin = 90.0;",
+"  } else if (style > 3.5 && style < 4.5) {",
+"    base *= 0.80 + 0.36 * h21(floor(vW.xz * 1.6) + floor(vW.y * 0.7));",
+"  } else if (style > 4.5 && style < 5.5) {",
+"    spec = 0.85; shin = 40.0; base *= 0.96 + 0.08 * h21(floor(vW.xz * 0.8));",
+"  } else if (style > 5.5 && style < 6.5) {",
+"    base *= 0.93 + 0.13 * h21(floor(vW.xz * 0.55));",
+"  } else if (style > 6.5) {",
+"    float fl = h21(floor(vW.xz * 2.6) + floor(uTime * 11.0));",
+"    float lick = 0.55 + 0.45 * sin(uTime * 6.0 + vW.y * 1.7 + fl * 6.28);",
+"    base = mix(vec3(1.0, 0.42, 0.08), vec3(1.0, 0.93, 0.58), lick * (0.45 + 0.55 * fl));",
+"    emit = 1.0;",
+"  }",
+"  if (uConf > 0.5 && style != 2.0) {",
+"    float c = floor(vM.y * 255.0 + 0.5);",
+"    vec3 cc = c < 0.5 ? vec3(0.36, 0.76, 0.46) : (c < 1.5 ? vec3(0.94, 0.71, 0.25) : vec3(0.90, 0.36, 0.33));",
+"    base = mix(vec3(dot(base, vec3(0.33))), cc, 0.78);",
+"  }",
+"  float ao = vM.z;",
+"  float ndl = max(dot(N, uSun), 0.0);",
+"  vec3 V = normalize(uCam - vW);",
+"  vec3 H = normalize(uSun + V);",
+"  float s = pow(max(dot(N, H), 0.0), shin) * spec;",
+"  vec3 hemi = mix(uGnd, uSky, N.y * 0.5 + 0.5);",
+"  vec3 col = base * (hemi * 0.52 * ao + uSunCol * ndl * mix(0.70, 1.0, ao)) + uSunCol * s;",
+"  col = mix(col, base, emit);",
+"  float sel = step(distance(vId, uSel), 0.002);",
+"  float hov = step(distance(vId, uHov), 0.002) * (1.0 - sel);",
+"  col = mix(col, mix(col, vec3(1.0, 0.86, 0.46), 0.50) + 0.05, sel);",
+"  col = mix(col, col * 1.22 + 0.03, hov);",
+"  float d = length(uCam - vW) * uFogD;",
+"  float fg = 1.0 - exp(-d * d * 1.7);",
+"  col = mix(col, uFog, clamp(fg, 0.0, 1.0));",
+"  gl_FragColor = vec4(col, vC.a);",
+"}"].join("\n");
+
+function shader(type, src) {
+  var s = gl.createShader(type);
+  gl.shaderSource(s, src); gl.compileShader(s);
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+  return s;
+}
+function initGL() {
+  var opts = { antialias: !MOBILE, alpha: true, premultipliedAlpha: false, depth: true, powerPreference: "high-performance" };
+  gl = CANVAS.getContext("webgl", opts) || CANVAS.getContext("experimental-webgl", opts);
+  if (!gl) return false;
+  prog = gl.createProgram();
+  gl.attachShader(prog, shader(gl.VERTEX_SHADER, VS));
+  gl.attachShader(prog, shader(gl.FRAGMENT_SHADER, FS));
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  gl.useProgram(prog);
+  ["aPos","aNor","aCol","aId","aMeta"].forEach(function (a) { loc[a] = gl.getAttribLocation(prog, a); });
+  ["uP","uV","uSun","uSunCol","uSky","uGnd","uFog","uCam","uSel","uHov","uPick","uConf","uTime","uFogD"]
+    .forEach(function (u) { loc[u] = gl.getUniformLocation(prog, u); });
+  gl.enable(gl.DEPTH_TEST);
+  gl.disable(gl.CULL_FACE);
+  gl.clearColor(0, 0, 0, 0);
+  return true;
+}
+function upload() {
+  vbo = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.bufferData(gl.ARRAY_BUFFER, MB.pack(), gl.STATIC_DRAW);
+  vertCount = MB.n;
+  tvbo = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, tvbo);
+  gl.bufferData(gl.ARRAY_BUFFER, terrVerts, gl.STATIC_DRAW);
+  tibo = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tibo);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, terrIdx, gl.STATIC_DRAW);
+  MB.pos = MB.nor = MB.col = MB.idc = MB.met = null;
+  terrVerts = null;
+}
+function bindAttribs() {
+  gl.enableVertexAttribArray(loc.aPos);  gl.vertexAttribPointer(loc.aPos, 3, gl.FLOAT, false, 36, 0);
+  gl.enableVertexAttribArray(loc.aNor);  gl.vertexAttribPointer(loc.aNor, 3, gl.FLOAT, false, 36, 12);
+  gl.enableVertexAttribArray(loc.aCol);  gl.vertexAttribPointer(loc.aCol, 4, gl.UNSIGNED_BYTE, true, 36, 24);
+  gl.enableVertexAttribArray(loc.aId);   gl.vertexAttribPointer(loc.aId, 4, gl.UNSIGNED_BYTE, true, 36, 28);
+  gl.enableVertexAttribArray(loc.aMeta); gl.vertexAttribPointer(loc.aMeta, 4, gl.UNSIGNED_BYTE, true, 36, 32);
+}
+function makePickTarget(w, h) {
+  if (pickFB) { gl.deleteFramebuffer(pickFB); gl.deleteTexture(pickTex); gl.deleteRenderbuffer(pickRB); }
+  pickW = w; pickH = h;
+  pickTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, pickTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  pickRB = gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER, pickRB);
+  gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, w, h);
+  pickFB = gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pickTex, 0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, pickRB);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+}
+
+/* ============================================================
+   6. CAMERA
+   ============================================================ */
+var HOME = { t: [-310, 725, -120], d: 1400, az: 3.48, el: 0.30 };
+// Camera views are authored in compass coordinates too, so they get the same mirror.
+function DW(f) { return { t: [f.t[0], f.t[1], -f.t[2]], d: f.d, az: Math.PI - f.az, el: f.el }; }
+var cam = (function () { var h = DW(HOME); return { t: h.t, d: h.d, az: h.az, el: h.el }; })();
+var fly = null;
+var eye = [0, 0, 0];
+var P = m4(), V = m4();
+
+function camEye() {
+  var ce = Math.cos(cam.el), se = Math.sin(cam.el);
+  eye[0] = cam.t[0] + cam.d * ce * Math.sin(cam.az);
+  eye[1] = cam.t[1] + cam.d * se;
+  eye[2] = cam.t[2] + cam.d * ce * Math.cos(cam.az);
+  var g = ground(eye[0], -eye[2]) + 14;
+  if (eye[1] < g) eye[1] = g;
+  return eye;
+}
+function flyTo(f, ms) {
+  f = DW(f);
+  var da = f.az - cam.az;
+  while (da > Math.PI) da -= Math.PI * 2;
+  while (da < -Math.PI) da += Math.PI * 2;
+  fly = { t0: performance.now(), ms: ms || 1500,
+    a: { t: cam.t.slice(), d: cam.d, az: cam.az, el: cam.el },
+    b: { t: f.t.slice(), d: f.d, az: cam.az + da, el: f.el } };
+}
+function stepFly(now) {
+  if (!fly) return;
+  var k = clamp((now - fly.t0) / fly.ms, 0, 1);
+  var e = k < 0.5 ? 4*k*k*k : 1 - Math.pow(-2*k + 2, 3) / 2;
+  for (var i = 0; i < 3; i++) cam.t[i] = lerp(fly.a.t[i], fly.b.t[i], e);
+  cam.d = lerp(fly.a.d, fly.b.d, e);
+  cam.az = lerp(fly.a.az, fly.b.az, e);
+  cam.el = lerp(fly.a.el, fly.b.el, e);
+  if (k >= 1) fly = null;
+}
+
+var drag = null, pinch = null;
+function ptr(ev) { var r = CANVAS.getBoundingClientRect(); return { x: ev.clientX - r.left, y: ev.clientY - r.top }; }
+function onDown(ev) {
+  CANVAS.setPointerCapture && CANVAS.setPointerCapture(ev.pointerId);
+  var p = ptr(ev);
+  drag = { x: p.x, y: p.y, sx: p.x, sy: p.y, pan: ev.button === 2 || ev.shiftKey || ev.ctrlKey, moved: 0, id: ev.pointerId };
+  fly = null;
+  CANVAS.classList.add("jrz-drag");
+  hideHint();
+}
+function onMove(ev) {
+  var p = ptr(ev);
+  if (!drag) { hoverAt(p.x, p.y); return; }
+  var dx = p.x - drag.x, dy = p.y - drag.y;
+  drag.x = p.x; drag.y = p.y; drag.moved += Math.abs(dx) + Math.abs(dy);
+  if (drag.pan) {
+    var s = cam.d * 0.0016;
+    var fx = Math.sin(cam.az), fz = Math.cos(cam.az);
+    cam.t[0] += (dx * fz + dy * fx) * s;
+    cam.t[2] += (-dx * fx + dy * fz) * s;
+  } else {
+    cam.az -= dx * 0.0052;
+    cam.el = clamp(cam.el + dy * 0.0046, 0.055, 1.44);
+  }
+}
+function onUp(ev) {
+  CANVAS.classList.remove("jrz-drag");
+  if (drag && drag.moved < 6) {
+    var p = ptr(ev);
+    select(pickAt(p.x, p.y));
+  }
+  drag = null;
+}
+function onWheel(ev) {
+  ev.preventDefault(); fly = null;
+  cam.d = clamp(cam.d * Math.exp(clamp(ev.deltaY, -220, 220) * 0.0013), 55, 3600);
+}
+function bindControls() {
+  CANVAS.addEventListener("pointerdown", onDown);
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
+  window.addEventListener("pointercancel", function () { drag = null; CANVAS.classList.remove("jrz-drag"); });
+  CANVAS.addEventListener("wheel", onWheel, { passive: false });
+  CANVAS.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  CANVAS.addEventListener("touchstart", function (e) {
+    if (e.touches.length === 2) {
+      drag = null; fly = null;
+      pinch = { d: touchDist(e), cx: (e.touches[0].clientX + e.touches[1].clientX) / 2, cy: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
+    }
+  }, { passive: true });
+  CANVAS.addEventListener("touchmove", function (e) {
+    if (e.touches.length === 2 && pinch) {
+      e.preventDefault();
+      var d = touchDist(e);
+      cam.d = clamp(cam.d * (pinch.d / (d || 1)), 55, 3600);
+      var cx = (e.touches[0].clientX + e.touches[1].clientX) / 2, cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      var s = cam.d * 0.0016, dx = cx - pinch.cx, dy = cy - pinch.cy;
+      var fx = Math.sin(cam.az), fz = Math.cos(cam.az);
+      cam.t[0] += (dx * fz + dy * fx) * s; cam.t[2] += (-dx * fx + dy * fz) * s;
+      pinch.d = d; pinch.cx = cx; pinch.cy = cy;
+    }
+  }, { passive: false });
+  CANVAS.addEventListener("touchend", function (e) { if (e.touches.length < 2) pinch = null; }, { passive: true });
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "r" || e.key === "R") { flyTo(HOME); }
+    if (e.key === "Escape") select(0);
+  });
+}
+function touchDist(e) {
+  return Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+}
+
+/* ============================================================
+   7. PICKING
+   ============================================================ */
+var pickBuf = new Uint8Array(4);
+var lastHover = 0, hoverT = 0;
+function pickAt(cssX, cssY) {
+  if (!pickFB || !CANVAS.clientWidth) return 0;
+  var sx = pickW / CANVAS.clientWidth, sy = pickH / CANVAS.clientHeight;
+  var px = Math.round(cssX * sx), py = Math.round(pickH - cssY * sy);
+  if (px < 0 || py < 0 || px >= pickW || py >= pickH) return 0;
+  gl.bindFramebuffer(gl.FRAMEBUFFER, pickFB);
+  gl.viewport(0, 0, pickW, pickH);
+  gl.clearColor(0, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.uniform1f(loc.uPick, 1);
+  drawScene(true);
+  gl.uniform1f(loc.uPick, 0);
+  gl.readPixels(px, py, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pickBuf);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+  gl.clearColor(0, 0, 0, 0);
+  return pickBuf[0] | (pickBuf[1] << 8) | (pickBuf[2] << 16);
+}
+function hoverAt(x, y) {
+  if (MOBILE) return;
+  var now = performance.now();
+  if (now - hoverT < 130) return;
+  hoverT = now;
+  var id = pickAt(x, y);
+  var el = document.getElementById("jrzHover");
+  if (id !== lastHover) { lastHover = id; }
+  if (id && OBJ[id]) {
+    el.textContent = OBJ[id].name;
+    el.style.left = x + "px"; el.style.top = y + "px"; el.style.opacity = "1";
+    CANVAS.style.cursor = "pointer";
+  } else {
+    el.style.opacity = "0";
+    CANVAS.style.cursor = drag ? "grabbing" : "grab";
+  }
+}
+
+/* ============================================================
+   8. RENDER
+   ============================================================ */
+var selId = 0, sunT = 0.33, showPins = true, confMode = false;
+var SUNSETS = [
+  { k: 0.00, sky: [0.42,0.44,0.52], fog: [0.72,0.66,0.60], sun: [0.98,0.72,0.48], gnd: [0.22,0.20,0.17],
+    css: [[47,59,76],[141,127,116],[217,167,111]] },
+  { k: 0.28, sky: [0.55,0.66,0.80], fog: [0.80,0.80,0.78], sun: [1.00,0.94,0.80], gnd: [0.28,0.26,0.21],
+    css: [[63,108,154],[143,176,200],[223,214,189]] },
+  { k: 0.50, sky: [0.58,0.72,0.90], fog: [0.83,0.85,0.86], sun: [1.00,0.98,0.92], gnd: [0.30,0.29,0.24],
+    css: [[47,107,166],[143,188,216],[230,226,210]] },
+  { k: 0.76, sky: [0.52,0.58,0.70], fog: [0.86,0.76,0.62], sun: [1.00,0.86,0.62], gnd: [0.28,0.24,0.19],
+    css: [[61,95,136],[165,143,125],[232,188,130]] },
+  { k: 1.00, sky: [0.34,0.32,0.40], fog: [0.62,0.46,0.40], sun: [1.00,0.60,0.36], gnd: [0.18,0.15,0.14],
+    css: [[38,48,74],[109,85,96],[201,116,79]] }
+];
+function sunState(t) {
+  var a = SUNSETS[0], b = SUNSETS[SUNSETS.length - 1];
+  for (var i = 0; i < SUNSETS.length - 1; i++) {
+    if (t >= SUNSETS[i].k && t <= SUNSETS[i + 1].k) { a = SUNSETS[i]; b = SUNSETS[i + 1]; break; }
+  }
+  var u = (t - a.k) / Math.max(0.0001, b.k - a.k);
+  function mix3(p, q) { return [lerp(p[0],q[0],u), lerp(p[1],q[1],u), lerp(p[2],q[2],u)]; }
+  var css = [];
+  for (var s = 0; s < 3; s++) {
+    var m = mix3(a.css[s], b.css[s]);
+    css.push("rgb(" + Math.round(m[0]) + "," + Math.round(m[1]) + "," + Math.round(m[2]) + ")");
+  }
+  var ang = t * Math.PI;
+  var dir = [Math.cos(ang), Math.sin(ang) * 0.62 + 0.04, 0.30];
+  var L = Math.hypot(dir[0], dir[1], dir[2]);
+  return { dir: [dir[0]/L, dir[1]/L, dir[2]/L], sky: mix3(a.sky,b.sky), fog: mix3(a.fog,b.fog),
+           sun: mix3(a.sun,b.sun), gnd: mix3(a.gnd,b.gnd), css: css };
+}
+function applySky(s) {
+  document.getElementById("jrzSky").style.background =
+    "linear-gradient(to bottom, " + s.css[0] + " 0%, " + s.css[1] + " 58%, " + s.css[2] + " 100%)";
+}
+function drawScene(pickPass) {
+  gl.bindBuffer(gl.ARRAY_BUFFER, tvbo);
+  bindAttribs();
+  if (layerOn("terrain")) {
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, tibo);
+    gl.drawElements(gl.TRIANGLES, terrIdx.length, gl.UNSIGNED_SHORT, 0);
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  bindAttribs();
+  for (var i = 0; i < LAYERS.length; i++) {
+    var L = LAYERS[i];
+    if (L.key === "terrain" || !L.on) continue;
+    var r = RANGE[L.key];
+    if (!r || !r.count) continue;
+    if (L.ghost) {
+      if (pickPass) continue;
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+      gl.depthMask(false);
+      gl.drawArrays(gl.TRIANGLES, r.start, r.count);
+      gl.depthMask(true);
+      gl.disable(gl.BLEND);
+    } else {
+      gl.drawArrays(gl.TRIANGLES, r.start, r.count);
+    }
+  }
+}
+function layerOn(key) {
+  for (var i = 0; i < LAYERS.length; i++) if (LAYERS[i].key === key) return LAYERS[i].on;
+  return true;
+}
+function resize() {
+  var dpr = Math.min(window.devicePixelRatio || 1, MOBILE ? 1.5 : 2);
+  var w = Math.max(1, Math.round(CANVAS.clientWidth * dpr));
+  var h = Math.max(1, Math.round(CANVAS.clientHeight * dpr));
+  if (CANVAS.width !== w || CANVAS.height !== h) {
+    CANVAS.width = w; CANVAS.height = h;
+    makePickTarget(Math.max(1, w >> 1), Math.max(1, h >> 1));
+  }
+}
+function frame(now) {
+  requestAnimationFrame(frame);
+  resize();
+  stepFly(now);
+  var e = camEye();
+  var s = sunState(sunT);
+  gl.viewport(0, 0, CANVAS.width, CANVAS.height);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  m4persp(P, 0.82, CANVAS.width / CANVAS.height, 4, 9000);
+  m4look(V, e, cam.t, [0, 1, 0]);
+  gl.uniformMatrix4fv(loc.uP, false, P);
+  gl.uniformMatrix4fv(loc.uV, false, V);
+  gl.uniform3fv(loc.uSun, s.dir);
+  gl.uniform3fv(loc.uSunCol, s.sun);
+  gl.uniform3fv(loc.uSky, s.sky);
+  gl.uniform3fv(loc.uGnd, s.gnd);
+  gl.uniform3fv(loc.uFog, s.fog);
+  gl.uniform3fv(loc.uCam, e);
+  gl.uniform3fv(loc.uSel, idVec(selId));
+  gl.uniform3fv(loc.uHov, idVec(lastHover));
+  gl.uniform1f(loc.uPick, 0);
+  gl.uniform1f(loc.uConf, confMode ? 1 : 0);
+  gl.uniform1f(loc.uTime, now * 0.001);
+  gl.uniform1f(loc.uFogD, 0.00019);
+  drawScene(false);
+  updatePins();
+  updateRose();
+}
+// North is -Z in render space, so on screen it sits at the camera azimuth,
+// measured clockwise from straight up.
+var lastRot = -999;
+function updateRose() {
+  var deg = cam.az * 57.29577951308232;
+  if (Math.abs(deg - lastRot) < 0.2) return;
+  lastRot = deg;
+  ROSE.style.setProperty("--rot", deg.toFixed(1) + "deg");
+}
+var idTmp = new Float32Array(3);
+function idVec(id) {
+  idTmp[0] = (id & 255) / 255; idTmp[1] = ((id >> 8) & 255) / 255; idTmp[2] = ((id >> 16) & 255) / 255;
+  return idTmp;
+}
+
+/* ============================================================
+   9. PASSION WEEK
+   ============================================================ */
+var EVENTS = [
+  { day: "Sun", name: "Triumphal entry", w: [640, 745, 120],
+    obj: "The Mount of Olives",
+    focus: { t: [520, 730, 90], d: 700, az: 1.35, el: 0.24 } },
+  { day: "Mon", name: "Cleansing the Temple", w: [-20, 762, -226],
+    obj: "The Royal Stoa",
+    focus: { t: [-20, 754, -226], d: 280, az: 3.30, el: 0.24 } },
+  { day: "Tue", name: "Teaching in Solomon's Porch", w: [150, 756, 20],
+    obj: "Solomon's Porch",
+    focus: { t: [150, 750, 10], d: 230, az: 1.45, el: 0.20 } },
+  { day: "Tue", name: "The widow's two coins", w: [92, 754, 45],
+    obj: "Court of the Women",
+    focus: { t: [92, 749, 45], d: 165, az: 1.95, el: 0.34 } },
+  { day: "Tue", name: "Olivet discourse", w: [760, 800, 70],
+    obj: "The Mount of Olives",
+    focus: { t: [700, 785, 80], d: 520, az: 1.30, el: 0.20 } },
+  { day: "Thu", name: "The Last Supper", w: [-616, 786, -664],
+    obj: "The Upper Room",
+    focus: { t: [-616, 776, -664], d: 215, az: 2.40, el: 0.28 } },
+  { day: "Thu", name: "Gethsemane", w: [378, 706, 192],
+    obj: "Gethsemane",
+    focus: { t: [376, 698, 190], d: 215, az: 1.10, el: 0.22 } },
+  { day: "Thu", name: "Before Annas and Caiaphas", w: [-449, 754, -609],
+    obj: "The House of Caiaphas",
+    focus: { t: [-449, 738, -609], d: 225, az: 2.10, el: 0.28 } },
+  { day: "Fri", name: "Pilate's judgment seat", w: [-756, 796, -240],
+    obj: "Herod's Palace",
+    focus: { t: [-758, 784, -280], d: 380, az: 2.15, el: 0.26 } },
+  { day: "Fri", name: "Sent to Herod Antipas", w: [-386, 782, -46],
+    obj: "The Hasmonean Palace",
+    focus: { t: [-386, 762, -46], d: 250, az: 2.50, el: 0.28 } },
+  { day: "Fri", name: "Golgotha", w: [-566, 776, 79],
+    obj: "Golgotha",
+    focus: { t: [-566, 766, 79], d: 215, az: 2.35, el: 0.20 } },
+  { day: "Sun", name: "The empty tomb", w: [-624, 772, 134],
+    obj: "The garden tomb",
+    focus: { t: [-616, 762, 134], d: 115, az: 1.62, el: 0.13 } },
+  { day: "+50", name: "Pentecost on the steps", w: [-40, 742, -282],
+    obj: "The Southern Steps",
+    focus: { t: [-40, 730, -288], d: 240, az: 3.14, el: 0.24 } }
+];
+var PINS = [
+  { name: "Golgotha", w: [-566, 778, 79], obj: "Golgotha" },
+  { name: "The tomb", w: [-624, 774, 134], obj: "The garden tomb" },
+  { name: "Upper Room", w: [-616, 790, -664], obj: "The Upper Room" },
+  { name: "Caiaphas", w: [-449, 758, -609], obj: "The House of Caiaphas" },
+  { name: "Praetorium", w: [-756, 800, -240], obj: "Herod's Palace" },
+  { name: "Antonia", w: [-195, 800, 272], obj: "The Antonia Fortress" },
+  { name: "Gethsemane", w: [378, 712, 192], obj: "Gethsemane" },
+  { name: "Mount of Olives", w: [900, 828, 100], obj: "The Mount of Olives" },
+  { name: "The Sanctuary", w: [-12, 806, 45], obj: "The Sanctuary" },
+  { name: "Step inside the temple courts \u2192", w: [70, 790, 45],
+    href: "../temple/index.html" },
+  { name: "Solomon's Porch", w: [150, 760, 0], obj: "Solomon's Porch" },
+  { name: "Royal Stoa", w: [-20, 770, -226], obj: "The Royal Stoa" },
+  { name: "Southern Steps", w: [-40, 744, -286], obj: "The Southern Steps" },
+  { name: "Bethesda", w: [73, 753, 415], obj: "The Pool of Bethesda" },
+  { name: "Siloam", w: [-30, 646, -830], obj: "The Pool of Siloam" },
+  { name: "Herod's Palace", w: [-756, 796, -230], obj: "Herod's Palace" },
+  { name: "Bethany & Bethphage \u2192", w: [1330, 790, -60], obj: "The Mount of Olives" }
+];
+var pinEls = [];
+function buildPins() {
+  var host = document.getElementById("jrzPins");
+  PINS.forEach(function (p) {
+    var el = document.createElement("div");
+    el.className = "jrz-pin";
+    el.innerHTML = '<span class="jrz-pt"></span><span class="jrz-ps"></span>';
+    el.querySelector(".jrz-pt").textContent = p.name;
+    if (p.href) {
+      el.classList.add("jrz-linkpin");
+      el.title = "Opens the detailed Temple Mount reconstruction in a new tab";
+      el.addEventListener("click", function () { window.open(p.href, "_blank", "noopener,noreferrer"); });
+    } else {
+      el.addEventListener("click", function () {
+        var id = byName(p.obj);
+        if (id) { select(id); flyTo(OBJ[id].focus); }
+      });
+    }
+    host.appendChild(el);
+    pinEls.push(el);
+  });
+}
+var pv = [0, 0, 0, 0];
+function updatePins() {
+  var w = CANVAS.clientWidth, h = CANVAS.clientHeight;
+  for (var i = 0; i < PINS.length; i++) {
+    var el = pinEls[i];
+    if (!showPins) { el.style.display = "none"; continue; }
+    var p = PINS[i].w, wz = -p[2];
+    // view * pos
+    var vx = V[0]*p[0] + V[4]*p[1] + V[8]*wz + V[12];
+    var vy = V[1]*p[0] + V[5]*p[1] + V[9]*wz + V[13];
+    var vz = V[2]*p[0] + V[6]*p[1] + V[10]*wz + V[14];
+    var cx = P[0]*vx, cy = P[5]*vy, cw = -vz;
+    if (cw <= 1) { el.style.display = "none"; continue; }
+    var sx = (cx / cw * 0.5 + 0.5) * w, sy = (-cy / cw * 0.5 + 0.5) * h;
+    if (sx < -80 || sy < -20 || sx > w + 80 || sy > h + 20) { el.style.display = "none"; continue; }
+    var fade = clamp(1 - (cw - 1400) / 1500, 0.12, 1);
+    el.style.display = "flex";
+    el.style.transform = "translate(-50%,-100%) translate(" + sx.toFixed(1) + "px," + sy.toFixed(1) + "px)";
+    el.style.opacity = fade.toFixed(2);
+    el.style.zIndex = String(4000 - Math.round(cw));
+  }
+}
+function byName(n) {
+  for (var i = 1; i < OBJ.length; i++) if (OBJ[i].name === n) return i;
+  return 0;
+}
+
+/* ============================================================
+   10. UI
+   ============================================================ */
+var CONF_LBL = ["Excavated", "Probable", "Disputed"];
+function select(id) {
+  selId = id || 0;
+  var box = document.getElementById("jrzInfo");
+  var o = OBJ[selId];
+  if (!o) {
+    box.innerHTML = '<p class="jrz-lbl">About this reconstruction</p>' +
+      '<p>Every building here is placed from measured excavation, from Josephus and the Mishnah, or from scholarly argument &mdash; and the three are not the same thing. Turn on <em>Colour the city by certainty</em> to see which is which.</p>' +
+      '<p class="jrz-empty">Click any building, or pick a moment from the week below.</p>';
+    document.querySelectorAll("#jrzTrack .jrz-ev").forEach(function (b) { b.classList.remove("jrz-on"); });
+    pinEls.forEach(function (e) { e.classList.remove("jrz-on"); });
+    return;
+  }
+  var h = '<h2>' + o.name + '</h2>';
+  h += '<div class="jrz-chips"><span class="jrz-chip">' + o.cat + '</span>' +
+       '<span class="jrz-chip c' + (o.conf || 0) + '">' + CONF_LBL[o.conf || 0] + '</span></div>';
+  h += '<p>' + o.text + '</p>';
+  if (o.facts && o.facts.length) {
+    h += '<ul class="jrz-facts">';
+    o.facts.forEach(function (f) { h += '<li><b>' + f[0] + '</b><span>' + f[1] + '</span></li>'; });
+    h += '</ul>';
+  }
+  if (o.scripture && o.scripture.length) {
+    h += '<p class="jrz-lbl">Read it</p><div class="jrz-scrip">';
+    o.scripture.forEach(function (s) { h += '<span class="jrz-verse">' + s + '</span>'; });
+    h += '</div>';
+  }
+  if (o.link) {
+    h += '<a class="jrz-cta" href="' + o.link + '" target="_blank" rel="noopener noreferrer">' +
+         '<b>Step inside the temple courts<span>a closer reconstruction</span></b><i>&rarr;</i></a>';
+  }
+  box.innerHTML = h;
+  document.getElementById("jrzRight").scrollTop = 0;
+  if (window.innerWidth <= 880) {
+    document.getElementById("jrzRight").classList.remove("jrz-hide");
+    document.getElementById("jrzLeft").classList.add("jrz-hide");
+    document.getElementById("jrzBtnLeft").classList.remove("jrz-on");
+  }
+  pinEls.forEach(function (e, i) { e.classList.toggle("jrz-on", byName(PINS[i].obj) === selId); });
+}
+function buildUI() {
+  // views
+  var views = [
+    ["From the south", HOME],
+    ["From the south-east", { t: [-180, 720, -140], d: 1720, az: 2.35, el: 0.46 }],
+    ["Temple Mount", { t: [0, 748, -10], d: 620, az: 2.55, el: 0.38 }],
+    ["Temple courts", { t: [10, 758, 45], d: 175, az: 1.85, el: 0.30 }],
+    ["Upper City", { t: [-600, 772, -280], d: 640, az: 2.25, el: 0.36 }],
+    ["Lower City", { t: [-60, 690, -560], d: 560, az: 2.90, el: 0.32 }],
+    ["Pool of Siloam", { t: [-30, 648, -830], d: 260, az: 3.00, el: 0.30 }],
+    ["Mount of Olives", { t: [520, 740, 80], d: 820, az: 1.30, el: 0.24 }],
+    ["The Praetorium", { t: [-756, 782, -300], d: 450, az: 2.30, el: 0.30 }],
+    ["Outside the gate", { t: [-570, 756, 30], d: 680, az: -0.78, el: 0.33 }],
+    ["Golgotha", { t: [-596, 764, 106], d: 330, az: 2.30, el: 0.24 }]
+  ];
+  var vh = document.getElementById("jrzViews");
+  views.forEach(function (v) {
+    var b = document.createElement("button");
+    b.textContent = v[0];
+    b.addEventListener("click", function () { flyTo(v[1]); });
+    vh.appendChild(b);
+  });
+  // layers
+  var lh = document.getElementById("jrzLayers");
+  LAYERS.forEach(function (L) {
+    var row = document.createElement("div");
+    row.className = "jrz-row" + (L.on ? " jrz-on" : "");
+    row.innerHTML = '<i class="jrz-sw"></i><span class="jrz-rowtx"></span>';
+    row.querySelector(".jrz-rowtx").textContent = L.name;
+    row.addEventListener("click", function () { L.on = !L.on; row.classList.toggle("jrz-on", L.on); });
+    lh.appendChild(row);
+  });
+  // confidence
+  var cf = document.getElementById("jrzConf");
+  cf.addEventListener("click", function () { confMode = !confMode; cf.classList.toggle("jrz-on", confMode); });
+  // pins
+  var pt = document.getElementById("jrzPinsTog");
+  pt.addEventListener("click", function () { showPins = !showPins; pt.classList.toggle("jrz-on", showPins); });
+  // sun
+  var sun = document.getElementById("jrzSun"), sunTx = document.getElementById("jrzSunTx");
+  function sunLabel(t) {
+    var hrs = 5.5 + t * 13;
+    var hh = Math.floor(hrs), mm = Math.round((hrs - hh) * 60 / 15) * 15;
+    if (mm === 60) { mm = 0; hh++; }
+    return hh + ":" + (mm < 10 ? "0" : "") + mm;
+  }
+  sun.addEventListener("input", function () {
+    sunT = sun.value / 1000; sunTx.textContent = sunLabel(sunT); applySky(sunState(sunT));
+  });
+  sunTx.textContent = sunLabel(sunT);
+  // timeline
+  var tr = document.getElementById("jrzTrack");
+  EVENTS.forEach(function (ev) {
+    var b = document.createElement("button");
+    b.className = "jrz-ev";
+    b.innerHTML = '<span class="jrz-evn"></span><span class="jrz-evt"></span>';
+    b.querySelector(".jrz-evn").textContent = ev.day;
+    b.querySelector(".jrz-evt").textContent = ev.name;
+    b.title = ev.name;
+    b.addEventListener("click", function () {
+      document.querySelectorAll("#jrzTrack .jrz-ev").forEach(function (x) { x.classList.remove("jrz-on"); });
+      b.classList.add("jrz-on");
+      var id = byName(ev.obj);
+      if (id) select(id);
+      flyTo(ev.focus, 1700);
+      hideHint();
+    });
+    tr.appendChild(b);
+  });
+  // header buttons
+  document.getElementById("jrzBtnReset").addEventListener("click", function () { flyTo(HOME); select(0); });
+  var lp = document.getElementById("jrzLeft"), bl = document.getElementById("jrzBtnLeft");
+  bl.addEventListener("click", function () {
+    lp.classList.toggle("jrz-hide");
+    bl.classList.toggle("jrz-on", !lp.classList.contains("jrz-hide"));
+    if (window.innerWidth <= 880) document.getElementById("jrzRight").classList.add("jrz-hide");
+  });
+  document.querySelectorAll("#jrz-root .jrz-close").forEach(function (b) {
+    b.addEventListener("click", function () {
+      document.getElementById(b.getAttribute("data-close")).classList.add("jrz-hide");
+      if (b.getAttribute("data-close") === "jrzLeft") bl.classList.remove("jrz-on");
+    });
+  });
+  // guided tour
+  var tourI = -1, tourTimer = null;
+  var bt = document.getElementById("jrzBtnTour");
+  bt.addEventListener("click", function () {
+    if (tourTimer) { clearInterval(tourTimer); tourTimer = null; bt.classList.remove("jrz-on"); bt.textContent = "Walk the week"; return; }
+    bt.classList.add("jrz-on"); bt.textContent = "Stop";
+    tourI = -1;
+    function step() {
+      tourI++;
+      if (tourI >= EVENTS.length) { clearInterval(tourTimer); tourTimer = null; bt.classList.remove("jrz-on"); bt.textContent = "Walk the week"; return; }
+      var btns = document.querySelectorAll("#jrzTrack .jrz-ev");
+      btns.forEach(function (x) { x.classList.remove("jrz-on"); });
+      btns[tourI].classList.add("jrz-on");
+      btns[tourI].scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      var ev = EVENTS[tourI];
+      var id = byName(ev.obj);
+      if (id) select(id);
+      flyTo(ev.focus, 2200);
+    }
+    step();
+    tourTimer = setInterval(step, 6200);
+  });
+  if (window.innerWidth <= 880) {
+    lp.classList.add("jrz-hide"); bl.classList.remove("jrz-on");
+    document.getElementById("jrzRight").classList.add("jrz-hide");
+  }
+}
+var hintGone = false;
+function hideHint() {
+  if (hintGone) return; hintGone = true;
+  var h = document.getElementById("jrzHint");
+  h.style.opacity = "0";
+}
+
+/* ============================================================
+   11. BOOT
+   ============================================================ */
+function say(t) { LOADTX.textContent = t; }
+function step(fn) { return new Promise(function (res) { requestAnimationFrame(function () { setTimeout(function () { fn(); res(); }, 0); }); }); }
+
+function boot() {
+  if (!initGL()) {
+    LOAD.innerHTML = '<h2>This browser cannot open the map</h2><p>WebGL is switched off or unavailable. Enable hardware acceleration, or try another browser.</p>';
+    return;
+  }
+  Promise.resolve()
+    .then(function () { say("Carving the valleys"); return step(buildTerrain); })
+    .then(function () { say("Laying the Temple platform"); return step(function () {
+      MB = new Mesh();
+      buildTemple();
+    }); })
+    .then(function () { say("Raising the walls"); return step(function () { buildWalls(); buildCivic(); }); })
+    .then(function () { say("Filling the pools"); return step(function () { buildWater(); }); })
+    .then(function () { say("Building the houses"); return step(function () { buildCity(); }); })
+    .then(function () { say("Planting the olive groves"); return step(function () { buildNature(); buildGhostWall(); endLayer(); }); })
+    .then(function () { say("Sending it to the card"); return step(function () {
+      buildTerrainMesh();
+      upload();
+      makePickTarget(Math.max(1, (CANVAS.width || 800) >> 1), Math.max(1, (CANVAS.height || 600) >> 1));
+    }); })
+    .then(function () {
+      buildUI();
+      buildPins();
+      bindControls();
+      select(0);
+      applySky(sunState(sunT));
+      resize();
+      requestAnimationFrame(frame);
+      LOAD.style.opacity = "0";
+      setTimeout(function () { LOAD.style.display = "none"; }, 600);
+      setTimeout(hideHint, 11000);
+    })
+    .catch(function (err) {
+      LOAD.innerHTML = '<h2>Something went wrong building the city</h2><p style="max-width:420px;text-transform:none;letter-spacing:0;font-family:var(--sans);font-size:12px">' + (err && err.message ? err.message : err) + '</p>';
+    });
+}
+boot();
+
+})();
+</script>
+</body>
+</html>

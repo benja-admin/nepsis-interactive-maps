@@ -1,0 +1,92 @@
+{
+ "eras": [
+  {
+   "id": "patriarchs",
+   "label": "Patriarchs",
+   "range": "c. 2100-1550 BC",
+   "blurb": "Abraham, Isaac, Jacob and Joseph. Migration from Ur to Canaan, then down to Egypt."
+  },
+  {
+   "id": "exodus",
+   "label": "Exodus & Conquest",
+   "range": "c. 1450-1200 BC",
+   "blurb": "Egypt, Sinai, the wilderness years, and Joshua's campaigns in Canaan."
+  },
+  {
+   "id": "judges",
+   "label": "Judges",
+   "range": "c. 1200-1050 BC",
+   "blurb": "Tribal settlement, the Philistine coast, and the cycle of judges."
+  },
+  {
+   "id": "united",
+   "label": "United Kingdom",
+   "range": "c. 1050-930 BC",
+   "blurb": "Saul, David and Solomon. Jerusalem becomes capital and temple city."
+  },
+  {
+   "id": "divided",
+   "label": "Divided Kingdom",
+   "range": "930-586 BC",
+   "blurb": "Israel in the north, Judah in the south. Assyria and Babylon close in."
+  },
+  {
+   "id": "exile",
+   "label": "Exile & Return",
+   "range": "586-430 BC",
+   "blurb": "Babylon, Persia, and the return under Zerubbabel, Ezra and Nehemiah."
+  },
+  {
+   "id": "intertest",
+   "label": "Between Testaments",
+   "range": "430-4 BC",
+   "blurb": "Greek and Hasmonean rule, then Rome and Herod the Great."
+  },
+  {
+   "id": "gospels",
+   "label": "Life of Christ",
+   "range": "c. 4 BC - AD 33",
+   "blurb": "Galilee, Samaria, Judea and Jerusalem in the ministry of Jesus."
+  },
+  {
+   "id": "acts",
+   "label": "Early Church",
+   "range": "AD 33-100",
+   "blurb": "Pentecost outward: Judea, Samaria, Asia Minor, Greece and Rome."
+  }
+ ],
+ "categories": {
+  "capital": {
+   "label": "Capital city",
+   "color": "#e8b13a"
+  },
+  "city": {
+   "label": "City",
+   "color": "#e2e2dc"
+  },
+  "town": {
+   "label": "Town / village",
+   "color": "#a9b6a0"
+  },
+  "sacred": {
+   "label": "Sacred site",
+   "color": "#7fc9e8"
+  },
+  "mountain": {
+   "label": "Mountain",
+   "color": "#c98b6a"
+  },
+  "water": {
+   "label": "Water",
+   "color": "#4aa3d8"
+  },
+  "fortress": {
+   "label": "Fortress",
+   "color": "#c2685f"
+  },
+  "wilderness": {
+   "label": "Wilderness",
+   "color": "#d4c391"
+  }
+ }
+}
